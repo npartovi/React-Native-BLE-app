@@ -11,6 +11,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
   const [selectedColor, setSelectedColor] = useState('#FF0000');
   const [brightness, setBrightness] = useState(84);
   const [activeAnimation, setActiveAnimation] = useState('none');
+  const [colorCycleMode, setColorCycleMode] = useState(false);
 
   const toggleLED = async () => {
     const newPowerState = !ledPower;
@@ -59,6 +60,11 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     if (ledPower) {
       const command = `ANIMATION_${animationType.toUpperCase()}`;
       await sendBLECommand(command);
+      
+      // If color cycle mode is active, start it
+      if (colorCycleMode) {
+        await sendBLECommand('COLOR_CYCLE_ON');
+      }
     }
   };
 
@@ -72,10 +78,12 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
 
   const setSolidMode = async () => {
     setActiveAnimation('solid');
+    setColorCycleMode(false); // Disable color cycle in solid mode
 
     if (ledPower) {
-      // Stop any running animation and set to solid color
+      // Stop any running animation and color cycle
       await sendBLECommand('ANIMATION_STOP');
+      await sendBLECommand('COLOR_CYCLE_OFF');
       
       // Apply current selected color
       const r = parseInt(selectedColor.slice(1, 3), 16);
@@ -86,9 +94,29 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     }
   };
 
+  const toggleColorCycle = async () => {
+    const newCycleMode = !colorCycleMode;
+    setColorCycleMode(newCycleMode);
+
+    if (ledPower) {
+      if (newCycleMode) {
+        await sendBLECommand('COLOR_CYCLE_ON');
+      } else {
+        await sendBLECommand('COLOR_CYCLE_OFF');
+        // Apply current selected color when turning off cycle
+        const r = parseInt(selectedColor.slice(1, 3), 16);
+        const g = parseInt(selectedColor.slice(3, 5), 16);
+        const b = parseInt(selectedColor.slice(5, 7), 16);
+        const command = `ANIMATION_COLOR_${r}_${g}_${b}`;
+        await sendBLECommand(command);
+      }
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
+    setColorCycleMode(false);
   };
 
   return {
@@ -96,12 +124,14 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     selectedColor,
     brightness,
     activeAnimation,
+    colorCycleMode,
     toggleLED,
     handleColorChange,
     handleBrightnessChange,
     handleAnimationSelect,
     stopAnimation,
     setSolidMode,
+    toggleColorCycle,
     resetLEDState,
   };
 };

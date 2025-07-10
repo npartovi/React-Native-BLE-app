@@ -4,16 +4,20 @@ import { ANIMATIONS } from '../constants';
 
 interface AnimationControlsProps {
   activeAnimation: string;
+  colorCycleMode: boolean;
   onAnimationSelect: (animationType: string) => void;
   onStopAnimation: () => void;
   onSolidMode: () => void;
+  onToggleColorCycle: () => void;
 }
 
 export const AnimationControls: React.FC<AnimationControlsProps> = ({
   activeAnimation,
+  colorCycleMode,
   onAnimationSelect,
   onStopAnimation,
   onSolidMode,
+  onToggleColorCycle,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -63,6 +67,28 @@ export const AnimationControls: React.FC<AnimationControlsProps> = ({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Color Cycle Toggle - Only show for non-rainbow animations */}
+      {activeAnimation !== 'none' && activeAnimation !== 'solid' && !['rainbow', 'pride', 'plasma'].includes(activeAnimation) && (
+        <View style={styles.cycleSection}>
+          <TouchableOpacity
+            style={[
+              styles.cycleButton,
+              colorCycleMode && styles.cycleButtonActive,
+            ]}
+            onPress={onToggleColorCycle}
+          >
+            <Text style={[styles.cycleButtonText, colorCycleMode && styles.cycleButtonTextActive]}>
+              🌈 Color Cycle {colorCycleMode ? 'ON' : 'OFF'}
+            </Text>
+          </TouchableOpacity>
+          {colorCycleMode && (
+            <Text style={styles.cycleInfo}>
+              Colors change every 10 seconds
+            </Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
@@ -124,5 +150,34 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cycleSection: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  cycleButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: '#001d3d',
+    borderWidth: 2,
+    borderColor: '#ffc300',
+  },
+  cycleButtonActive: {
+    backgroundColor: '#ffc300',
+  },
+  cycleButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffc300',
+  },
+  cycleButtonTextActive: {
+    color: '#000814',
+  },
+  cycleInfo: {
+    fontSize: 12,
+    color: '#000814',
+    marginTop: 5,
+    opacity: 0.7,
   },
 });

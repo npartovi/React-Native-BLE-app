@@ -14,12 +14,14 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   selectedColor,
   brightness,
   activeAnimation,
+  colorCycleMode,
   toggleLED,
   handleColorChange,
   handleBrightnessChange,
   handleAnimationSelect,
   stopAnimation,
   setSolidMode,
+  toggleColorCycle,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -50,9 +52,11 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
 
           <AnimationControls
             activeAnimation={activeAnimation}
+            colorCycleMode={colorCycleMode}
             onAnimationSelect={handleAnimationSelect}
             onStopAnimation={stopAnimation}
             onSolidMode={setSolidMode}
+            onToggleColorCycle={toggleColorCycle}
           />
 
           <ColorControls

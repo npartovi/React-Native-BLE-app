@@ -16,12 +16,14 @@ export interface LEDContextType {
   selectedColor: string;
   brightness: number;
   activeAnimation: string;
+  colorCycleMode: boolean;
   toggleLED: () => Promise<void>;
   handleColorChange: (color: string) => Promise<void>;
   handleBrightnessChange: (value: number) => Promise<void>;
   handleAnimationSelect: (animationType: string) => Promise<void>;
   stopAnimation: () => Promise<void>;
   setSolidMode: () => Promise<void>;
+  toggleColorCycle: () => Promise<void>;
 }
 
 export interface Animation {

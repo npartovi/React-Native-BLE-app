@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, Animated, Dimensions, SafeAreaView } from 'react-native';
 
 interface LaunchScreenProps {
   onComplete: () => void;
@@ -40,7 +40,7 @@ export const LaunchScreen: React.FC<LaunchScreenProps> = ({ onComplete }) => {
   }, [fadeAnim, scaleAnim, onComplete]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Animated.View
         style={[
           styles.content,
@@ -57,7 +57,7 @@ export const LaunchScreen: React.FC<LaunchScreenProps> = ({ onComplete }) => {
           resizeMode="contain"
         />
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 };
 

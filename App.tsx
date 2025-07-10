@@ -7,6 +7,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   Text,
+  SafeAreaView,
 } from 'react-native';
 import {
   Header,
@@ -58,9 +59,9 @@ function App() {
   }
 
   return (
-    <View style={[styles.container, backgroundStyle]}>
+    <SafeAreaView style={[styles.container, backgroundStyle]}>
       <StatusBar
-        barStyle="dark-content"
+        barStyle="light-content"
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
@@ -91,16 +92,18 @@ function App() {
             selectedColor={ledControl.selectedColor}
             brightness={ledControl.brightness}
             activeAnimation={ledControl.activeAnimation}
+            colorCycleMode={ledControl.colorCycleMode}
             toggleLED={ledControl.toggleLED}
             handleColorChange={ledControl.handleColorChange}
             handleBrightnessChange={ledControl.handleBrightnessChange}
             handleAnimationSelect={ledControl.handleAnimationSelect}
             stopAnimation={ledControl.stopAnimation}
             setSolidMode={ledControl.setSolidMode}
+            toggleColorCycle={ledControl.toggleColorCycle}
           />
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

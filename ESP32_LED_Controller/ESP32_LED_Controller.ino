@@ -28,6 +28,16 @@ uint8_t rainbowHue = 0;
 CRGB animationColor = CRGB::White;
 uint8_t animationHue = 0;
 
+// Color cycle variables
+bool colorCycleEnabled = false;
+unsigned long colorCycleTimer = 0;
+int currentColorIndex = 0;
+CRGB cycleColors[] = {
+  CRGB::Red, CRGB::Green, CRGB::Blue, CRGB::Yellow, 
+  CRGB::Magenta, CRGB::Cyan, CRGB::White, CRGB::Orange
+};
+int numCycleColors = 8;
+
 // Pride2015 animation variables
 uint16_t sPseudotime = 0;
 uint16_t sLastMillis = 0;
@@ -85,6 +95,24 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         }
         else if (command.startsWith("BRIGHTNESS_")) {
           processBrightnessCommand(command);
+        }
+        else if (command == "COLOR_CYCLE_ON") {
+          colorCycleEnabled = true;
+          colorCycleTimer = millis();
+          currentColorIndex = 0; // Start with first color
+          animationColor = cycleColors[currentColorIndex];
+          
+          // Convert to HSV for animations that need hue
+          CHSV hsv = rgb2hsv_approximate(animationColor);
+          animationHue = hsv.hue;
+          
+          Serial.printf("*** COLOR_CYCLE_ON received *** Enabled, starting with color %d (R:%d G:%d B:%d)\n", 
+                       currentColorIndex, animationColor.r, animationColor.g, animationColor.b);
+          Serial.printf("Current animation: %s\n", currentAnimation.c_str());
+        }
+        else if (command == "COLOR_CYCLE_OFF") {
+          colorCycleEnabled = false;
+          Serial.println("*** COLOR_CYCLE_OFF received *** Disabled");
         }
         else if (command.startsWith("ANIMATION_COLOR_")) {
           processAnimationColorCommand(command);
@@ -170,7 +198,42 @@ void loop() {
   // Update animations continuously
   updateAnimations();
   
+  // Handle color cycling
+  updateColorCycle();
+  
   delay(10); // Small delay to prevent watchdog issues
+}
+
+void updateColorCycle() {
+  // Debug: Always print status every 2 seconds
+  static unsigned long lastDebug = 0;
+  if (millis() - lastDebug > 2000) {
+    Serial.printf("Color Cycle Debug - Enabled: %s, Animation: %s, Timer: %lu\n", 
+                 colorCycleEnabled ? "YES" : "NO", currentAnimation.c_str(), millis() - colorCycleTimer);
+    lastDebug = millis();
+  }
+  
+  if (colorCycleEnabled && currentAnimation != "none" && currentAnimation != "rainbow" && currentAnimation != "pride" && currentAnimation != "plasma") {
+    if (millis() - colorCycleTimer > 5000) { // 5 seconds for testing
+      currentColorIndex = (currentColorIndex + 1) % numCycleColors;
+      animationColor = cycleColors[currentColorIndex];
+      
+      // Convert to HSV for animations that need hue
+      CHSV hsv = rgb2hsv_approximate(animationColor);
+      animationHue = hsv.hue;
+      
+      colorCycleTimer = millis();
+      Serial.printf("*** COLOR CYCLE TRIGGERED *** Changed to color %d (R:%d G:%d B:%d)\n", 
+                   currentColorIndex, animationColor.r, animationColor.g, animationColor.b);
+      
+      // Send notification back to app if connected
+      if (deviceConnected) {
+        String response = "COLOR_CYCLE_" + String(currentColorIndex);
+        pCharacteristic->setValue(response.c_str());
+        pCharacteristic->notify();
+      }
+    }
+  }
 }
 
 void turnOnLEDs() {
@@ -369,6 +432,149 @@ void updateAnimations() {
       animationTimer = currentTime;
     }
   }
+  
+  else if (currentAnimation == "chase") {
+    if (currentTime - animationTimer > 100) { // Update every 100ms
+      fill_solid(leds, NUM_LEDS, CRGB::Black);
+      for (int i = 0; i < 3; i++) {
+        int pos = (animationStep + i) % NUM_LEDS;
+        leds[pos] = animationColor;
+      }
+      FastLED.show();
+      animationStep = (animationStep + 1) % NUM_LEDS;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "fire") {
+    if (currentTime - animationTimer > 50) { // Update every 50ms
+      for (int i = 0; i < NUM_LEDS; i++) {
+        int heat = random8(0, 255);
+        if (heat > 160) {
+          leds[i] = CRGB(255, heat - 160, 0); // Red to yellow
+        } else if (heat > 80) {
+          leds[i] = CRGB(heat * 2, 0, 0); // Black to red
+        } else {
+          leds[i] = CRGB(heat, 0, 0); // Dim red
+        }
+      }
+      FastLED.show();
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "comet") {
+    if (currentTime - animationTimer > 80) { // Update every 80ms
+      fadeToBlackBy(leds, NUM_LEDS, 50);
+      int pos = animationStep % NUM_LEDS;
+      leds[pos] = animationColor;
+      if (pos > 0) leds[pos - 1] = animationColor;
+      if (pos > 1) leds[pos - 2] = animationColor;
+      FastLED.show();
+      animationStep++;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "twinkle") {
+    if (currentTime - animationTimer > 200) { // Update every 200ms
+      fadeToBlackBy(leds, NUM_LEDS, 30);
+      for (int i = 0; i < 3; i++) {
+        if (random8() < 50) {
+          int pos = random16(NUM_LEDS);
+          leds[pos] = animationColor;
+        }
+      }
+      FastLED.show();
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "scanner") {
+    if (currentTime - animationTimer > 60) { // Update every 60ms
+      fill_solid(leds, NUM_LEDS, CRGB::Black);
+      int pos;
+      if (animationStep < NUM_LEDS) {
+        pos = animationStep;
+      } else {
+        pos = (NUM_LEDS * 2) - animationStep - 1;
+      }
+      leds[pos] = animationColor;
+      if (pos > 0) leds[pos - 1] = animationColor;
+      if (pos > 1) leds[pos - 2] = animationColor;
+      FastLED.show();
+      animationStep++;
+      if (animationStep >= NUM_LEDS * 2) animationStep = 0;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "pulse") {
+    if (currentTime - animationTimer > 30) { // Update every 30ms
+      uint8_t brightness = beatsin8(60, 50, 255); // 60 BPM pulse
+      for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = animationColor;
+        leds[i].nscale8(brightness);
+      }
+      FastLED.show();
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "meteor") {
+    if (currentTime - animationTimer > 60) { // Update every 60ms
+      fadeToBlackBy(leds, NUM_LEDS, 64);
+      for (int i = 0; i < 5; i++) { // 5 meteors
+        int pos = (animationStep + (i * NUM_LEDS / 5)) % NUM_LEDS;
+        leds[pos] = animationColor;
+        if (pos > 0) leds[pos - 1] = animationColor;
+        if (pos > 1) leds[pos - 2] = animationColor;
+      }
+      FastLED.show();
+      animationStep = (animationStep + 1) % NUM_LEDS;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "theater") {
+    if (currentTime - animationTimer > 150) { // Update every 150ms
+      for (int i = 0; i < NUM_LEDS; i++) {
+        if ((i + animationStep) % 3 == 0) {
+          leds[i] = animationColor;
+        } else {
+          leds[i] = CRGB::Black;
+        }
+      }
+      FastLED.show();
+      animationStep = (animationStep + 1) % 3;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "plasma") {
+    if (currentTime - animationTimer > 40) { // Update every 40ms
+      for (int i = 0; i < NUM_LEDS; i++) {
+        uint8_t hue = sin8((i * 16) + animationStep) + sin8((i * 8) + (animationStep / 2));
+        leds[i] = CHSV(hue, 255, 255);
+      }
+      FastLED.show();
+      animationStep += 2;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "gradient") {
+    if (currentTime - animationTimer > 50) { // Update every 50ms
+      CHSV startColor = rgb2hsv_approximate(animationColor);
+      for (int i = 0; i < NUM_LEDS; i++) {
+        uint8_t hue = startColor.hue + ((i * 255) / NUM_LEDS) + animationStep;
+        leds[i] = CHSV(hue, 255, 255);
+      }
+      FastLED.show();
+      animationStep += 1;
+      animationTimer = currentTime;
+    }
+  }
 }
 
 void stopAllAnimations() {
@@ -389,6 +595,7 @@ void stopAllAnimations() {
     pCharacteristic->notify();
   }
 }
+
 
 void processAnimationColorCommand(String command) {
   // Expected format: ANIMATION_COLOR_R_G_B (e.g., ANIMATION_COLOR_255_0_0)
