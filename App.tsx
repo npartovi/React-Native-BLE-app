@@ -108,6 +108,7 @@ function App() {
             handleBrightnessChange={ledControl.handleBrightnessChange}
             handleAnimationSelect={ledControl.handleAnimationSelect}
             stopAnimation={ledControl.stopAnimation}
+            setSolidMode={ledControl.setSolidMode}
           />
         )}
       </ScrollView>

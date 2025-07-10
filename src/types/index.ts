@@ -21,6 +21,7 @@ export interface LEDContextType {
   handleBrightnessChange: (value: number) => Promise<void>;
   handleAnimationSelect: (animationType: string) => Promise<void>;
   stopAnimation: () => Promise<void>;
+  setSolidMode: () => Promise<void>;
 }
 
 export interface Animation {

@@ -6,12 +6,14 @@ interface AnimationControlsProps {
   activeAnimation: string;
   onAnimationSelect: (animationType: string) => void;
   onStopAnimation: () => void;
+  onSolidMode: () => void;
 }
 
 export const AnimationControls: React.FC<AnimationControlsProps> = ({
   activeAnimation,
   onAnimationSelect,
   onStopAnimation,
+  onSolidMode,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -40,14 +42,27 @@ export const AnimationControls: React.FC<AnimationControlsProps> = ({
         ))}
       </View>
 
-      {activeAnimation !== 'none' && (
+      <View style={styles.controlButtons}>
         <TouchableOpacity
-          style={styles.stopButton}
-          onPress={onStopAnimation}
+          style={[
+            styles.controlButton,
+            styles.solidButton,
+            activeAnimation === 'solid' && styles.selectedControlButton,
+          ]}
+          onPress={onSolidMode}
         >
-          <Text style={styles.buttonText}>Stop Animation</Text>
+          <Text style={styles.buttonText}>🔘 Solid Mode</Text>
         </TouchableOpacity>
-      )}
+
+        {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
+          <TouchableOpacity
+            style={[styles.controlButton, styles.stopButton]}
+            onPress={onStopAnimation}
+          >
+            <Text style={styles.buttonText}>Stop Animation</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -85,12 +100,27 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  stopButton: {
-    backgroundColor: '#F44336',
+  controlButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+    gap: 10,
+  },
+  controlButton: {
+    flex: 1,
     padding: 12,
     borderRadius: 5,
     alignItems: 'center',
-    marginTop: 15,
+  },
+  solidButton: {
+    backgroundColor: '#4CAF50',
+  },
+  stopButton: {
+    backgroundColor: '#F44336',
+  },
+  selectedControlButton: {
+    borderWidth: 3,
+    borderColor: '#333',
   },
   buttonText: {
     color: '#FFFFFF',

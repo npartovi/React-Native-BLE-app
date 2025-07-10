@@ -19,6 +19,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   handleBrightnessChange,
   handleAnimationSelect,
   stopAnimation,
+  setSolidMode,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -51,6 +52,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
             activeAnimation={activeAnimation}
             onAnimationSelect={handleAnimationSelect}
             onStopAnimation={stopAnimation}
+            onSolidMode={setSolidMode}
           />
 
           <ColorControls

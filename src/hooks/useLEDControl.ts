@@ -70,6 +70,22 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     }
   };
 
+  const setSolidMode = async () => {
+    setActiveAnimation('solid');
+
+    if (ledPower) {
+      // Stop any running animation and set to solid color
+      await sendBLECommand('ANIMATION_STOP');
+      
+      // Apply current selected color
+      const r = parseInt(selectedColor.slice(1, 3), 16);
+      const g = parseInt(selectedColor.slice(3, 5), 16);
+      const b = parseInt(selectedColor.slice(5, 7), 16);
+      const command = `COLOR_${r}_${g}_${b}`;
+      await sendBLECommand(command);
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
@@ -85,6 +101,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     handleBrightnessChange,
     handleAnimationSelect,
     stopAnimation,
+    setSolidMode,
     resetLEDState,
   };
 };
