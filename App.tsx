@@ -19,7 +19,7 @@ import { useLEDControl } from './src/hooks/useLEDControl';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  
+
   const {
     bluetoothState,
     connectedDevice,
@@ -63,7 +63,7 @@ function App() {
         <StatusCard
           title="Bluetooth Status"
           statusColor={getBluetoothStatusColor()}
-          statusText={bluetoothState}
+          statusText={bluetoothState || 'Unknown'}
         />
 
         {/* Connection Status */}

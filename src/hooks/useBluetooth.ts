@@ -8,7 +8,7 @@ export const useBluetooth = () => {
     console.log('Creating new BleManager instance');
     return new BleManager();
   });
-  const [bluetoothState, setBluetoothState] = useState<State>('Unknown');
+  const [bluetoothState, setBluetoothState] = useState<State | null>(null);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<Device[]>([]);
@@ -233,6 +233,8 @@ export const useBluetooth = () => {
         return '#4CAF50';
       case 'PoweredOff':
         return '#F44336';
+      case null:
+        return '#FF9800';
       default:
         return '#FF9800';
     }
