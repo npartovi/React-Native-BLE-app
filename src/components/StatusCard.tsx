@@ -18,7 +18,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.sectionTitle}>
         {title}
       </Text>
       <View style={styles.statusContainer}>
@@ -28,7 +28,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
             { backgroundColor: statusColor },
           ]}
         />
-        <Text style={[styles.statusText, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+        <Text style={styles.statusText}>
           {statusText}
         </Text>
       </View>
@@ -41,14 +41,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 25,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#2c3e50',
+    backgroundColor: '#3498db',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#ffffff',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -58,10 +60,11 @@ const styles = StyleSheet.create({
   statusIndicator: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 0,
     marginRight: 8,
   },
   statusText: {
     fontSize: 16,
+    color: '#ecf0f1',
   },
 });

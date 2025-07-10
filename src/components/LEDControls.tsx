@@ -25,12 +25,12 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.sectionTitle}>
         LED Controls
       </Text>
 
       <View style={styles.controlRow}>
-        <Text style={[styles.controlLabel, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+        <Text style={styles.controlLabel}>
           LED Power
         </Text>
         <Switch
@@ -70,14 +70,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 25,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ffc300',
+    backgroundColor: '#ffc300',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#000814',
   },
   controlRow: {
     flexDirection: 'row',
@@ -88,5 +90,6 @@ const styles = StyleSheet.create({
   controlLabel: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000814',
   },
 });

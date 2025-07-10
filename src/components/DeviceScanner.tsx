@@ -19,13 +19,13 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.sectionTitle}>
         ESP32 Devices
       </Text>
       <TouchableOpacity
         style={[
           styles.scanButton,
-          { backgroundColor: isScanning ? '#FF9800' : '#2196F3' },
+          { backgroundColor: isScanning ? '#ffc300' : '#ffd60a' },
         ]}
         onPress={onScan}
         disabled={isScanning}
@@ -43,10 +43,10 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
               style={styles.deviceItem}
               onPress={() => onConnect(device)}
             >
-              <Text style={[styles.deviceName, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+              <Text style={styles.deviceName}>
                 {device.name || 'Unknown ESP32'}
               </Text>
-              <Text style={[styles.deviceId, { color: isDarkMode ? '#CCCCCC' : '#666666' }]}>
+              <Text style={styles.deviceId}>
                 {device.id}
               </Text>
             </TouchableOpacity>
@@ -61,18 +61,20 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 25,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ffc300',
+    backgroundColor: '#003566',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#ffd60a',
   },
   scanButton: {
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
     marginBottom: 10,
   },
@@ -87,16 +89,20 @@ const styles = StyleSheet.create({
   deviceItem: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
+    borderColor: '#ffc300',
+    borderRadius: 8,
     marginBottom: 8,
+    backgroundColor: '#001d3d',
   },
   deviceName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#ffd60a',
   },
   deviceId: {
     fontSize: 12,
     marginTop: 2,
+    color: '#ffffff',
+    opacity: 0.8,
   },
 });

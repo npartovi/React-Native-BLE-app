@@ -15,7 +15,7 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
 
   return (
     <View style={styles.brightnessSection}>
-      <Text style={[styles.controlLabel, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.controlLabel}>
         Brightness: {Math.round(brightness)}
       </Text>
       <Slider
@@ -24,17 +24,13 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
         maximumValue={255}
         value={brightness}
         onValueChange={onBrightnessChange}
-        minimumTrackTintColor="#1fb28a"
-        maximumTrackTintColor="#d3d3d3"
+        minimumTrackTintColor="#003566"
+        maximumTrackTintColor="#001d3d"
         thumbStyle={styles.thumb}
       />
       <View style={styles.sliderLabels}>
-        <Text style={[styles.sliderLabel, { color: isDarkMode ? '#CCCCCC' : '#666666' }]}>
-          Dim
-        </Text>
-        <Text style={[styles.sliderLabel, { color: isDarkMode ? '#CCCCCC' : '#666666' }]}>
-          Bright
-        </Text>
+        <Text style={styles.sliderLabel}>Dim</Text>
+        <Text style={styles.sliderLabel}>Bright</Text>
       </View>
     </View>
   );
@@ -47,6 +43,7 @@ const styles = StyleSheet.create({
   controlLabel: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000814',
   },
   slider: {
     width: '100%',
@@ -54,9 +51,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   thumb: {
-    backgroundColor: '#1fb28a',
+    backgroundColor: '#003566',
     width: 20,
     height: 20,
+    borderRadius: 10,
   },
   sliderLabels: {
     flexDirection: 'row',
@@ -64,5 +62,7 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontSize: 12,
+    color: '#000814',
+    opacity: 0.7,
   },
 });

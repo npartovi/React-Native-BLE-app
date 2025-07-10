@@ -19,7 +19,7 @@ export const AnimationControls: React.FC<AnimationControlsProps> = ({
 
   return (
     <View style={styles.animationSection}>
-      <Text style={[styles.controlLabel, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.controlLabel}>
         LED Animations
       </Text>
 
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   controlLabel: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000814',
   },
   animationButtons: {
     flexDirection: 'row',
@@ -84,21 +85,18 @@ const styles = StyleSheet.create({
   animationButton: {
     width: '48%',
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
     marginBottom: 10,
     alignItems: 'center',
   },
   selectedAnimationButton: {
     borderWidth: 3,
-    borderColor: '#333',
+    borderColor: '#000814',
   },
   animationButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   controlButtons: {
     flexDirection: 'row',
@@ -109,18 +107,18 @@ const styles = StyleSheet.create({
   controlButton: {
     flex: 1,
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
   },
   solidButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#003566',
   },
   stopButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: '#001d3d',
   },
   selectedControlButton: {
     borderWidth: 3,
-    borderColor: '#333',
+    borderColor: '#000814',
   },
   buttonText: {
     color: '#FFFFFF',

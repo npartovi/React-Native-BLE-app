@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,15 +10,17 @@ import {
 } from 'react-native';
 import {
   Header,
-  StatusCard,
+  BluetoothStatusCard,
   DeviceScanner,
   LEDControls,
+  LaunchScreen,
 } from './src/components';
 import { useBluetooth } from './src/hooks/useBluetooth';
 import { useLEDControl } from './src/hooks/useLEDControl';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  const [showLaunchScreen, setShowLaunchScreen] = useState(true);
 
   const {
     bluetoothState,
@@ -46,45 +48,31 @@ function App() {
   }, [connectedDevice]);
 
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+    backgroundColor: '#000814',
   };
+
+  if (showLaunchScreen) {
+    return (
+      <LaunchScreen onComplete={() => setShowLaunchScreen(false)} />
+    );
+  }
 
   return (
     <View style={[styles.container, backgroundStyle]}>
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        barStyle="dark-content"
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
       <ScrollView style={styles.scrollView}>
         <Header />
 
-        {/* Bluetooth Status */}
-        <StatusCard
-          title="Bluetooth Status"
-          statusColor={getBluetoothStatusColor()}
-          statusText={bluetoothState || 'Unknown'}
+        {/* Combined Bluetooth & Connection Status */}
+        <BluetoothStatusCard
+          bluetoothState={bluetoothState}
+          connectedDevice={connectedDevice}
+          onDisconnect={disconnectDevice}
         />
-
-        {/* Connection Status */}
-        <StatusCard
-          title="Connection Status"
-          statusColor={getConnectionStatusColor()}
-          statusText={
-            connectedDevice
-              ? `Connected to ${connectedDevice.name || 'ESP32'}`
-              : 'Not Connected'
-          }
-        >
-          {connectedDevice && (
-            <TouchableOpacity
-              style={styles.disconnectButton}
-              onPress={disconnectDevice}
-            >
-              <Text style={styles.buttonText}>Disconnect</Text>
-            </TouchableOpacity>
-          )}
-        </StatusCard>
 
         {/* Device Scanner - Only show when not connected */}
         {!connectedDevice && (
@@ -119,21 +107,10 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000814',
   },
   scrollView: {
-    padding: 20,
-  },
-  disconnectButton: {
-    backgroundColor: '#F44336',
-    padding: 12,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    padding: 16,
   },
 });
 

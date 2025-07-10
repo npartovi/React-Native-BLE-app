@@ -19,10 +19,10 @@ export const ColorControls: React.FC<ColorControlsProps> = ({
   if (isRainbowMode) {
     return (
       <View style={styles.colorSection}>
-        <Text style={[styles.controlLabel, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+        <Text style={styles.controlLabel}>
           🌈 Rainbow Mode Active
         </Text>
-        <Text style={[styles.rainbowInfo, { color: isDarkMode ? '#CCCCCC' : '#666666' }]}>
+        <Text style={styles.rainbowInfo}>
           Color selection is disabled during rainbow animations. 
           The animation uses its own beautiful rainbow colors!
         </Text>
@@ -32,11 +32,11 @@ export const ColorControls: React.FC<ColorControlsProps> = ({
 
   return (
     <View style={styles.colorSection}>
-      <Text style={[styles.controlLabel, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+      <Text style={styles.controlLabel}>
         {activeAnimation !== 'none' ? 'Animation Colors' : 'LED Colors'}
       </Text>
       {activeAnimation !== 'none' && (
-        <Text style={[styles.colorHint, { color: isDarkMode ? '#aaa' : '#888' }]}>
+        <Text style={styles.colorHint}>
           Selected color will be used for the animation
         </Text>
       )}
@@ -73,18 +73,22 @@ const styles = StyleSheet.create({
   colorSection: {
     marginVertical: 15,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ffc300',
+    backgroundColor: '#ffd60a',
   },
   controlLabel: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000814',
   },
   colorHint: {
     fontSize: 12,
     fontStyle: 'italic',
     marginBottom: 10,
+    color: '#000814',
+    opacity: 0.7,
   },
   colorGrid: {
     flexDirection: 'row',
@@ -97,34 +101,33 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#ddd',
+    borderColor: '#000814',
     marginBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   selectedColorButton: {
-    borderColor: '#333',
+    borderColor: '#003566',
     borderWidth: 3,
   },
   colorButtonText: {
     fontSize: 10,
     fontWeight: 'bold',
     color: '#333',
-    textShadowColor: '#fff',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
   },
   colorPreview: {
     height: 40,
     borderRadius: 8,
     marginTop: 10,
     borderWidth: 2,
-    borderColor: '#ddd',
+    borderColor: '#000814',
   },
   rainbowInfo: {
     fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 20,
+    color: '#000814',
+    opacity: 0.8,
   },
 });
