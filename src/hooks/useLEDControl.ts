@@ -98,10 +98,14 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
     const newCycleMode = !colorCycleMode;
     setColorCycleMode(newCycleMode);
 
+    console.log('toggleColorCycle called:', { newCycleMode, ledPower, activeAnimation });
+
     if (ledPower) {
       if (newCycleMode) {
+        console.log('Sending COLOR_CYCLE_ON command');
         await sendBLECommand('COLOR_CYCLE_ON');
       } else {
+        console.log('Sending COLOR_CYCLE_OFF command');
         await sendBLECommand('COLOR_CYCLE_OFF');
         // Apply current selected color when turning off cycle
         const r = parseInt(selectedColor.slice(1, 3), 16);
@@ -110,6 +114,8 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControl
         const command = `ANIMATION_COLOR_${r}_${g}_${b}`;
         await sendBLECommand(command);
       }
+    } else {
+      console.log('LED power is off, not sending BLE command');
     }
   };
 

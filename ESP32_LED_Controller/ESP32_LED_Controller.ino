@@ -76,7 +76,6 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         Serial.println("*********");
         Serial.print("Received Value: ");
         Serial.print(rxValue);
-
         Serial.println();
         Serial.println("*********");
         
@@ -90,29 +89,24 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         else if (command == "LED_OFF") {
           turnOffLEDs();
         }
-        else if (command.startsWith("COLOR_")) {
-          processColorCommand(command);
-        }
-        else if (command.startsWith("BRIGHTNESS_")) {
-          processBrightnessCommand(command);
-        }
         else if (command == "COLOR_CYCLE_ON") {
           colorCycleEnabled = true;
           colorCycleTimer = millis();
-          currentColorIndex = 0; // Start with first color
+          currentColorIndex = 0;
           animationColor = cycleColors[currentColorIndex];
           
           // Convert to HSV for animations that need hue
           CHSV hsv = rgb2hsv_approximate(animationColor);
           animationHue = hsv.hue;
-          
-          Serial.printf("*** COLOR_CYCLE_ON received *** Enabled, starting with color %d (R:%d G:%d B:%d)\n", 
-                       currentColorIndex, animationColor.r, animationColor.g, animationColor.b);
-          Serial.printf("Current animation: %s\n", currentAnimation.c_str());
         }
         else if (command == "COLOR_CYCLE_OFF") {
           colorCycleEnabled = false;
-          Serial.println("*** COLOR_CYCLE_OFF received *** Disabled");
+        }
+        else if (command.startsWith("COLOR_")) {
+          processColorCommand(command);
+        }
+        else if (command.startsWith("BRIGHTNESS_")) {
+          processBrightnessCommand(command);
         }
         else if (command.startsWith("ANIMATION_COLOR_")) {
           processAnimationColorCommand(command);
@@ -120,12 +114,15 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         else if (command.startsWith("ANIMATION_")) {
           processAnimationCommand(command);
         }
+        else {
+          Serial.println("Unrecognized command");
+        }
       }
     }
 };
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Starting iOS-compatible BLE LED Controller...");
 
   // Initialize FastLED
@@ -205,16 +202,8 @@ void loop() {
 }
 
 void updateColorCycle() {
-  // Debug: Always print status every 2 seconds
-  static unsigned long lastDebug = 0;
-  if (millis() - lastDebug > 2000) {
-    Serial.printf("Color Cycle Debug - Enabled: %s, Animation: %s, Timer: %lu\n", 
-                 colorCycleEnabled ? "YES" : "NO", currentAnimation.c_str(), millis() - colorCycleTimer);
-    lastDebug = millis();
-  }
-  
   if (colorCycleEnabled && currentAnimation != "none" && currentAnimation != "rainbow" && currentAnimation != "pride" && currentAnimation != "plasma") {
-    if (millis() - colorCycleTimer > 5000) { // 5 seconds for testing
+    if (millis() - colorCycleTimer > 10000) { // 10 seconds
       currentColorIndex = (currentColorIndex + 1) % numCycleColors;
       animationColor = cycleColors[currentColorIndex];
       
@@ -223,8 +212,6 @@ void updateColorCycle() {
       animationHue = hsv.hue;
       
       colorCycleTimer = millis();
-      Serial.printf("*** COLOR CYCLE TRIGGERED *** Changed to color %d (R:%d G:%d B:%d)\n", 
-                   currentColorIndex, animationColor.r, animationColor.g, animationColor.b);
       
       // Send notification back to app if connected
       if (deviceConnected) {
