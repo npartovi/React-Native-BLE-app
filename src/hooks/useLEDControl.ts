@@ -1,17 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RAINBOW_ANIMATIONS } from '../constants';
 
 interface UseLEDControlProps {
   sendBLECommand: (command: string) => Promise<void>;
   connectedDevice: any;
+  setNotificationCallback: (callback: (message: string) => void) => void;
 }
 
-export const useLEDControl = ({ sendBLECommand, connectedDevice }: UseLEDControlProps) => {
+export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotificationCallback }: UseLEDControlProps) => {
   const [ledPower, setLedPower] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#FF0000');
   const [brightness, setBrightness] = useState(84);
   const [activeAnimation, setActiveAnimation] = useState('none');
   const [colorCycleMode, setColorCycleMode] = useState(false);
+
+  // Handle state updates from ESP32
+  useEffect(() => {
+    const handleStateUpdate = (message: string) => {
+      console.log('Processing state update:', message);
+      
+      if (message === 'STATE_LED_ON') {
+        setLedPower(true);
+      } else if (message === 'STATE_LED_OFF') {
+        setLedPower(false);
+      } else if (message.startsWith('STATE_ANIMATION_')) {
+        const animationType = message.substring(16).toLowerCase(); // Remove 'STATE_ANIMATION_'
+        setActiveAnimation(animationType);
+      } else if (message === 'STATE_COLOR_CYCLE_ON') {
+        setColorCycleMode(true);
+      }
+    };
+
+    if (connectedDevice) {
+      setNotificationCallback(handleStateUpdate);
+    }
+  }, [connectedDevice, setNotificationCallback]);
 
   const toggleLED = async () => {
     const newPowerState = !ledPower;

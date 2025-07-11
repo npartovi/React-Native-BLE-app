@@ -23,6 +23,7 @@ String currentAnimation = "none";
 unsigned long animationTimer = 0;
 int animationStep = 0;
 uint8_t rainbowHue = 0;
+bool ledPowerState = true;
 
 // Animation color variables
 CRGB animationColor = CRGB::White;
@@ -55,6 +56,7 @@ void processAnimationColorCommand(String command);
 void updateAnimations();
 void stopAllAnimations();
 void pride();
+void sendCurrentState();
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -113,6 +115,9 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         }
         else if (command.startsWith("ANIMATION_")) {
           processAnimationCommand(command);
+        }
+        else if (command == "GET_STATE") {
+          sendCurrentState();
         }
         else {
           Serial.println("Unrecognized command");
@@ -225,8 +230,13 @@ void updateColorCycle() {
 
 void turnOnLEDs() {
   Serial.println("Turning LEDs ON");
-  fill_solid(leds, NUM_LEDS, CRGB::White);
-  FastLED.show();
+  ledPowerState = true;
+  
+  // If no animation is running, show white
+  if (currentAnimation == "none") {
+    fill_solid(leds, NUM_LEDS, CRGB::White);
+    FastLED.show();
+  }
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -237,6 +247,7 @@ void turnOnLEDs() {
 
 void turnOffLEDs() {
   Serial.println("Turning LEDs OFF");
+  ledPowerState = false;
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
   
@@ -339,7 +350,7 @@ void processAnimationCommand(String command) {
 }
 
 void updateAnimations() {
-  if (currentAnimation == "none") return;
+  if (currentAnimation == "none" || !ledPowerState) return;
   
   unsigned long currentTime = millis();
   
@@ -660,4 +671,33 @@ void pride()
     
     nblend( leds[pixelnumber], newcolor, 64);
   }
+}
+
+void sendCurrentState() {
+  if (!deviceConnected) return;
+  
+  // Send LED power state
+  String powerState = ledPowerState ? "STATE_LED_ON" : "STATE_LED_OFF";
+  pCharacteristic->setValue(powerState.c_str());
+  pCharacteristic->notify();
+  
+  delay(100); // Small delay between notifications
+  
+  // Send current animation if any
+  if (currentAnimation != "none") {
+    String animState = "STATE_ANIMATION_" + currentAnimation;
+    animState.toUpperCase();
+    pCharacteristic->setValue(animState.c_str());
+    pCharacteristic->notify();
+    
+    delay(100);
+    
+    // Send color cycle state
+    if (colorCycleEnabled) {
+      pCharacteristic->setValue("STATE_COLOR_CYCLE_ON");
+      pCharacteristic->notify();
+    }
+  }
+  
+  Serial.println("Current state sent to app");
 }

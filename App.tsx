@@ -32,6 +32,7 @@ function App() {
     connectToDevice,
     disconnectDevice,
     sendBLECommand,
+    setNotificationCallback,
     getBluetoothStatusColor,
     getConnectionStatusColor,
   } = useBluetooth();
@@ -39,6 +40,7 @@ function App() {
   const ledControl = useLEDControl({
     sendBLECommand,
     connectedDevice,
+    setNotificationCallback,
   });
 
   // Reset LED state when device disconnects

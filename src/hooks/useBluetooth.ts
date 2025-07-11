@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert, Platform, PermissionsAndroid } from 'react-native';
 import { BleManager, Device, State } from 'react-native-ble-plx';
 import { SERVICE_UUID, CHARACTERISTIC_UUID } from '../constants';
@@ -12,6 +12,7 @@ export const useBluetooth = () => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<Device[]>([]);
+  const stateUpdateCallbackRef = useRef<((message: string) => void) | null>(null);
 
   useEffect(() => {
     // Check if BLE is supported first
@@ -188,6 +189,46 @@ export const useBluetooth = () => {
 
       await connectedDevice.discoverAllServicesAndCharacteristics();
 
+      // Set up notification listener for state updates
+      console.log('Setting up notification listener...');
+      connectedDevice.monitorCharacteristicForService(
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        (error, characteristic) => {
+          if (error) {
+            console.log('Notification error:', error);
+            return;
+          }
+
+          if (characteristic?.value) {
+            const message = atob(characteristic.value);
+            console.log('Received BLE notification:', message);
+            
+            if (stateUpdateCallbackRef.current) {
+              console.log('Calling state update callback with:', message);
+              stateUpdateCallbackRef.current(message);
+            } else {
+              console.log('No state update callback set yet');
+            }
+          }
+        }
+      );
+
+      // Request current state after setting up notifications
+      setTimeout(async () => {
+        try {
+          console.log('Requesting current state from ESP32...');
+          const base64Command = btoa('GET_STATE');
+          await connectedDevice.writeCharacteristicWithoutResponseForService(
+            SERVICE_UUID,
+            CHARACTERISTIC_UUID,
+            base64Command,
+          );
+        } catch (error) {
+          console.log('Error requesting state:', error);
+        }
+      }, 1000);
+
       Alert.alert('Success', `Connected to ${device.name || 'ESP32 Device'}`);
     } catch (error) {
       console.log('Connection error:', error);
@@ -244,6 +285,10 @@ export const useBluetooth = () => {
     return connectedDevice ? '#4CAF50' : '#F44336';
   };
 
+  const setNotificationCallback = useCallback((callback: (message: string) => void) => {
+    stateUpdateCallbackRef.current = callback;
+  }, []);
+
   return {
     bluetoothState,
     connectedDevice,
@@ -253,6 +298,7 @@ export const useBluetooth = () => {
     connectToDevice,
     disconnectDevice,
     sendBLECommand,
+    setNotificationCallback,
     getBluetoothStatusColor,
     getConnectionStatusColor,
   };
