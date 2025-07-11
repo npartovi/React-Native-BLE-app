@@ -17,6 +17,8 @@ export interface LEDContextType {
   brightness: number;
   activeAnimation: string;
   colorCycleMode: boolean;
+  matrixEyeColor: string;
+  matrixPupilColor: string;
   toggleLED: () => Promise<void>;
   handleColorChange: (color: string) => Promise<void>;
   handleBrightnessChange: (value: number) => Promise<void>;
@@ -24,6 +26,8 @@ export interface LEDContextType {
   stopAnimation: () => Promise<void>;
   setSolidMode: () => Promise<void>;
   toggleColorCycle: () => Promise<void>;
+  handleMatrixEyeColorChange: (color: string) => Promise<void>;
+  handleMatrixPupilColorChange: (color: string) => Promise<void>;
 }
 
 export interface Animation {

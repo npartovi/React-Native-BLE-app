@@ -95,6 +95,8 @@ function App() {
             brightness={ledControl.brightness}
             activeAnimation={ledControl.activeAnimation}
             colorCycleMode={ledControl.colorCycleMode}
+            matrixEyeColor={ledControl.matrixEyeColor}
+            matrixPupilColor={ledControl.matrixPupilColor}
             toggleLED={ledControl.toggleLED}
             handleColorChange={ledControl.handleColorChange}
             handleBrightnessChange={ledControl.handleBrightnessChange}
@@ -102,6 +104,8 @@ function App() {
             stopAnimation={ledControl.stopAnimation}
             setSolidMode={ledControl.setSolidMode}
             toggleColorCycle={ledControl.toggleColorCycle}
+            handleMatrixEyeColorChange={ledControl.handleMatrixEyeColorChange}
+            handleMatrixPupilColorChange={ledControl.handleMatrixPupilColorChange}
           />
         )}
       </ScrollView>

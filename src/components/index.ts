@@ -6,4 +6,5 @@ export { LEDControls } from './LEDControls';
 export { BrightnessControl } from './BrightnessControl';
 export { AnimationControls } from './AnimationControls';
 export { ColorControls } from './ColorControls';
+export { MatrixControls } from './MatrixControls';
 export { LaunchScreen } from './LaunchScreen';

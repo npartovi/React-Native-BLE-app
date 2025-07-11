@@ -3,6 +3,7 @@ import { View, Text, Switch, StyleSheet, useColorScheme } from 'react-native';
 import { BrightnessControl } from './BrightnessControl';
 import { AnimationControls } from './AnimationControls';
 import { ColorControls } from './ColorControls';
+import { MatrixControls } from './MatrixControls';
 import { LEDContextType } from '../types';
 
 interface LEDControlsProps extends LEDContextType {
@@ -15,6 +16,8 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   brightness,
   activeAnimation,
   colorCycleMode,
+  matrixEyeColor,
+  matrixPupilColor,
   toggleLED,
   handleColorChange,
   handleBrightnessChange,
@@ -22,6 +25,8 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   stopAnimation,
   setSolidMode,
   toggleColorCycle,
+  handleMatrixEyeColorChange,
+  handleMatrixPupilColorChange,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -63,6 +68,13 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
             selectedColor={selectedColor}
             activeAnimation={activeAnimation}
             onColorChange={handleColorChange}
+          />
+
+          <MatrixControls
+            matrixEyeColor={matrixEyeColor}
+            matrixPupilColor={matrixPupilColor}
+            onMatrixEyeColorChange={handleMatrixEyeColorChange}
+            onMatrixPupilColorChange={handleMatrixPupilColorChange}
           />
         </>
       )}

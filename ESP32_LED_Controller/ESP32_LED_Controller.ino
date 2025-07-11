@@ -3,6 +3,9 @@
 #include "BLEUtils.h"
 #include "BLE2902.h"
 #include <FastLED.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
 
 #define LED_PIN     15
 #define NUM_LEDS    40
@@ -10,6 +13,9 @@
 #define COLOR_ORDER GRB
 
 CRGB leds[NUM_LEDS];
+
+// 8x8 Matrix setup
+Adafruit_BicolorMatrix matrix = Adafruit_BicolorMatrix();
 
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
@@ -44,6 +50,64 @@ uint16_t sPseudotime = 0;
 uint16_t sLastMillis = 0;
 uint16_t sHue16 = 0;
 
+// 8x8 Matrix variables
+bool matrixEnabled = false;
+uint8_t matrixEyeColor = LED_GREEN;
+uint8_t matrixPupilColor = LED_RED;
+
+// Eye animation data
+const uint8_t PROGMEM blinkImg[][8] = {
+  { B00111100,         // Fully open eye
+    B01111110,
+    B11111111,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100 },
+  { B00000000,
+    B01111110,
+    B11111111,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100 },
+  { B00000000,
+    B00000000,
+    B00111100,
+    B11111111,
+    B11111111,
+    B11111111,
+    B00111100,
+    B00000000 },
+  { B00000000,
+    B00000000,
+    B00000000,
+    B00111100,
+    B11111111,
+    B01111110,
+    B00011000,
+    B00000000 },
+  { B00000000,         // Fully closed eye
+    B00000000,
+    B00000000,
+    B00000000,
+    B10000001,
+    B01111110,
+    B00000000,
+    B00000000 }
+};
+
+// Eye animation variables
+uint8_t blinkIndex[] = { 1, 2, 3, 4, 3, 2, 1 };
+uint8_t blinkCountdown = 100;
+uint8_t gazeCountdown = 75;
+uint8_t gazeFrames = 50;
+int8_t eyeX = 3, eyeY = 3;
+int8_t newX = 3, newY = 3;
+int8_t dX = 0, dY = 0;
+
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
@@ -57,6 +121,10 @@ void updateAnimations();
 void stopAllAnimations();
 void pride();
 void sendCurrentState();
+void updateMatrixAnimation();
+void blinkingAnimation();
+void gazingAnimation();
+void processMatrixCommand(String command);
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -119,6 +187,9 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         else if (command == "GET_STATE") {
           sendCurrentState();
         }
+        else if (command.startsWith("MATRIX_")) {
+          processMatrixCommand(command);
+        }
         else {
           Serial.println("Unrecognized command");
         }
@@ -137,6 +208,10 @@ void setup() {
   // Turn off all LEDs initially
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
+
+  // Initialize 8x8 Matrix
+  matrix.begin(0x70);
+  randomSeed(analogRead(0));
 
   // Create the BLE Device with iOS-friendly name
   BLEDevice::init("ESP32 LED Controller");
@@ -203,6 +278,9 @@ void loop() {
   // Handle color cycling
   updateColorCycle();
   
+  // Update matrix animation
+  updateMatrixAnimation();
+  
   delay(10); // Small delay to prevent watchdog issues
 }
 
@@ -229,8 +307,9 @@ void updateColorCycle() {
 }
 
 void turnOnLEDs() {
-  Serial.println("Turning LEDs ON");
+  Serial.println("Turning LEDs and Matrix ON");
   ledPowerState = true;
+  matrixEnabled = true;
   
   // If no animation is running, show white
   if (currentAnimation == "none") {
@@ -246,10 +325,15 @@ void turnOnLEDs() {
 }
 
 void turnOffLEDs() {
-  Serial.println("Turning LEDs OFF");
+  Serial.println("Turning LEDs and Matrix OFF");
   ledPowerState = false;
+  matrixEnabled = false;
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
+  
+  // Turn off matrix
+  matrix.clear();
+  matrix.writeDisplay();
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -700,4 +784,90 @@ void sendCurrentState() {
   }
   
   Serial.println("Current state sent to app");
+}
+
+void processMatrixCommand(String command) {
+  Serial.printf("Processing matrix command: %s\n", command.c_str());
+  
+  // Handle eye color commands
+  if (command == "MATRIX_EYE_GREEN") {
+    matrixEyeColor = LED_GREEN;
+    Serial.println("Matrix eye color: Green");
+  }
+  else if (command == "MATRIX_EYE_YELLOW") {
+    matrixEyeColor = LED_YELLOW;
+    Serial.println("Matrix eye color: Yellow");
+  }
+  else if (command == "MATRIX_EYE_RED") {
+    matrixEyeColor = LED_RED;
+    Serial.println("Matrix eye color: Red");
+  }
+  // Handle pupil color commands
+  else if (command == "MATRIX_PUPIL_GREEN") {
+    matrixPupilColor = LED_GREEN;
+    Serial.println("Matrix pupil color: Green");
+  }
+  else if (command == "MATRIX_PUPIL_YELLOW") {
+    matrixPupilColor = LED_YELLOW;
+    Serial.println("Matrix pupil color: Yellow");
+  }
+  else if (command == "MATRIX_PUPIL_RED") {
+    matrixPupilColor = LED_RED;
+    Serial.println("Matrix pupil color: Red");
+  }
+  
+  // Send confirmation back to app
+  if (deviceConnected) {
+    String response = "MATRIX_OK_" + command.substring(7); // Remove "MATRIX_"
+    pCharacteristic->setValue(response.c_str());
+    pCharacteristic->notify();
+  }
+}
+
+void updateMatrixAnimation() {
+  if (!matrixEnabled) return;
+  
+  matrix.clear();
+  blinkingAnimation();
+  gazingAnimation();
+  matrix.writeDisplay();
+}
+
+void blinkingAnimation() {
+  matrix.drawBitmap(0, 0,
+    blinkImg[
+      (blinkCountdown < sizeof(blinkIndex)) ? // Currently blinking?
+      blinkIndex[blinkCountdown] :            // Yes, look up bitmap #
+      0                                       // No, show bitmap 0
+    ], 8, 8, matrixEyeColor);
+  
+  // Decrement blink counter. At end, set random time for next blink.
+  if(--blinkCountdown == 0) blinkCountdown = random(5, 180);
+}
+
+void gazingAnimation() {
+  // Check if eye and pupil colors are the same - if so, make pupil transparent
+  uint8_t pupilDrawColor = (matrixEyeColor == matrixPupilColor) ? LED_OFF : matrixPupilColor;
+  
+  if(--gazeCountdown <= gazeFrames) {
+    // Eyes are in motion - draw pupil at interim position (or transparent if same color)
+    matrix.fillRect(
+      newX - (dX * gazeCountdown / gazeFrames),
+      newY - (dY * gazeCountdown / gazeFrames),
+      2, 2, pupilDrawColor);
+    if(gazeCountdown == 0) {    // Last frame?
+      eyeX = newX; eyeY = newY; // Yes. What's new is old, then...
+      do { // Pick random positions until one is within the eye circle
+        newX = random(7); newY = random(7);
+        dX   = newX - 3;  dY   = newY - 3;
+      } while((dX * dX + dY * dY) >= 10);      // Thank you Pythagoras
+      dX            = newX - eyeX;             // Horizontal distance to move
+      dY            = newY - eyeY;             // Vertical distance to move
+      gazeFrames    = random(3, 15);           // Duration of eye movement
+      gazeCountdown = random(gazeFrames, 120); // Count to end of next movement
+    }
+  } else {
+    // Not in motion yet -- draw pupil at current static position (or transparent if same color)
+    matrix.fillRect(eyeX, eyeY, 2, 2, pupilDrawColor);
+  }
 }
