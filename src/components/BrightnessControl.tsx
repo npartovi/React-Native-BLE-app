@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import Slider from '@react-native-community/slider';
 
@@ -12,18 +12,51 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
   onBrightnessChange,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
+  const [localBrightness, setLocalBrightness] = useState(brightness);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    setLocalBrightness(brightness);
+  }, [brightness]);
+
+  const handleValueChange = (value: number) => {
+    setLocalBrightness(value);
+    
+    // Clear existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set new timeout to send command after user stops dragging
+    timeoutRef.current = setTimeout(() => {
+      onBrightnessChange(value);
+    }, 150); // 150ms delay after user stops moving slider
+  };
+
+  const handleSlidingComplete = (value: number) => {
+    // Clear any pending timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // Send final value immediately when user releases slider
+    onBrightnessChange(value);
+  };
 
   return (
     <View style={styles.brightnessSection}>
       <Text style={styles.controlLabel}>
-        Brightness: {Math.round(brightness)}
+        Brightness: {Math.round(localBrightness)}
       </Text>
       <Slider
         style={styles.slider}
         minimumValue={10}
         maximumValue={255}
-        value={brightness}
-        onValueChange={onBrightnessChange}
+        value={localBrightness}
+        onValueChange={handleValueChange}
+        onSlidingComplete={handleSlidingComplete}
         minimumTrackTintColor="#003566"
         maximumTrackTintColor="#001d3d"
         thumbStyle={styles.thumb}
