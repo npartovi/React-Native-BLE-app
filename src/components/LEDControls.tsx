@@ -1,10 +1,8 @@
 import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
 import { BrightnessControl } from './BrightnessControl';
-import { AnimationControls } from './AnimationControls';
-import { ColorControls } from './ColorControls';
+import { AnimationPaletteSelector } from './AnimationPaletteSelector';
 import { MatrixControls } from './MatrixControls';
-import { PaletteControls } from './PaletteControls';
 import { Card, SectionHeader } from './ui';
 import { LEDContextType } from '../types';
 import { theme } from '../styles/theme';
@@ -64,25 +62,18 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
             onBrightnessChange={handleBrightnessChange}
           />
 
-          <AnimationControls
+          <AnimationPaletteSelector
             activeAnimation={activeAnimation}
+            selectedPalette={selectedPalette}
+            selectedColor={selectedColor}
             colorCycleMode={colorCycleMode}
             onAnimationSelect={handleAnimationSelect}
             onStopAnimation={stopAnimation}
             onSolidMode={setSolidMode}
             onToggleColorCycle={toggleColorCycle}
-          />
-
-          <ColorControls
-            selectedColor={selectedColor}
-            activeAnimation={activeAnimation}
-            onColorChange={handleColorChange}
-          />
-
-          <PaletteControls
-            selectedPalette={selectedPalette}
             onPaletteSelect={handlePaletteSelect}
             onPaletteDisable={handlePaletteDisable}
+            onColorChange={handleColorChange}
           />
 
           <MatrixControls

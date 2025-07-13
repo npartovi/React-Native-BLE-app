@@ -5,6 +5,7 @@ export { DeviceScanner } from './DeviceScanner';
 export { LEDControls } from './LEDControls';
 export { BrightnessControl } from './BrightnessControl';
 export { AnimationControls } from './AnimationControls';
+export { AnimationPaletteSelector } from './AnimationPaletteSelector';
 export { ColorControls } from './ColorControls';
 export { MatrixControls } from './MatrixControls';
 export { PaletteControls } from './PaletteControls';

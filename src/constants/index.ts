@@ -31,13 +31,21 @@ export const ANIMATIONS: Animation[] = [
 
 export const COLOR_OPTIONS: ColorOption[] = [
   { color: '#FF0000', name: 'Red' },
-  { color: '#00FF00', name: 'Green' },
-  { color: '#0000FF', name: 'Blue' },
-  { color: '#FFFF00', name: 'Yellow' },
-  { color: '#FF00FF', name: 'Magenta' },
-  { color: '#00FFFF', name: 'Cyan' },
-  { color: '#FFFFFF', name: 'White' },
   { color: '#FF8000', name: 'Orange' },
+  { color: '#FFFF00', name: 'Yellow' },
+  { color: '#80FF00', name: 'Lime' },
+  { color: '#00FF00', name: 'Green' },
+  { color: '#00FF80', name: 'Spring Green' },
+  { color: '#00FFFF', name: 'Cyan' },
+  { color: '#0080FF', name: 'Sky Blue' },
+  { color: '#0000FF', name: 'Blue' },
+  { color: '#8000FF', name: 'Purple' },
+  { color: '#FF00FF', name: 'Magenta' },
+  { color: '#FF0080', name: 'Pink' },
+  { color: '#FFFFFF', name: 'White' },
+  { color: '#C0C0C0', name: 'Silver' },
+  { color: '#808080', name: 'Gray' },
+  { color: '#000000', name: 'Black' },
 ];
 
 export const RAINBOW_ANIMATIONS = ['rainbow', 'pride'];

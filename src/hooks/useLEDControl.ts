@@ -55,15 +55,16 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
       const g = parseInt(color.slice(3, 5), 16);
       const b = parseInt(color.slice(5, 7), 16);
 
-      // If an animation is running (except rainbow-based ones), update animation color
+      // If an animation is running (except rainbow-based ones and solid mode), update animation color
       if (
         activeAnimation !== 'none' &&
+        activeAnimation !== 'solid' &&
         !RAINBOW_ANIMATIONS.includes(activeAnimation)
       ) {
         const command = `ANIMATION_COLOR_${r}_${g}_${b}`;
         await sendBLECommand(command);
       } else {
-        // Otherwise, set static color
+        // Otherwise, set static color (for solid mode or no animation)
         const command = `COLOR_${r}_${g}_${b}`;
         await sendBLECommand(command);
       }

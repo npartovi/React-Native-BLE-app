@@ -528,7 +528,8 @@ void updateAnimations() {
   else if (currentAnimation == "fade") {
     if (currentTime - animationTimer > 20) { // Update every 20ms
       uint8_t brightness = (sin8(animationStep) / 2) + 128;
-      fill_solid(leds, NUM_LEDS, animationColor);
+      CRGB color = getPaletteColor(animationStep);
+      fill_solid(leds, NUM_LEDS, color);
       FastLED.setBrightness(brightness);
       FastLED.show();
       animationStep += 5;
@@ -539,7 +540,8 @@ void updateAnimations() {
   else if (currentAnimation == "strobe") {
     if (currentTime - animationTimer > 100) { // Update every 100ms
       if (animationStep % 2 == 0) {
-        fill_solid(leds, NUM_LEDS, animationColor);
+        CRGB color = getPaletteColor(animationStep * 8);
+        fill_solid(leds, NUM_LEDS, color);
       } else {
         fill_solid(leds, NUM_LEDS, CRGB::Black);
       }
@@ -574,7 +576,9 @@ void updateAnimations() {
       
       // Add random sparkles using selected color
       if (random8() < 80) {
-        leds[random16(NUM_LEDS)] += animationColor;
+        int pos = random16(NUM_LEDS);
+        CRGB color = getPaletteColor(random8());
+        leds[pos] += color;
       }
       FastLED.show();
       animationTimer = currentTime;
@@ -584,7 +588,13 @@ void updateAnimations() {
   else if (currentAnimation == "breathe") {
     if (currentTime - animationTimer > 30) { // Update every 30ms
       uint8_t breath = sin8(animationStep);
-      fill_solid(leds, NUM_LEDS, CHSV(animationHue, 255, breath)); // Use selected color's hue
+      if (usePalette) {
+        CRGB color = getPaletteColor(animationStep);
+        color.nscale8(breath);
+        fill_solid(leds, NUM_LEDS, color);
+      } else {
+        fill_solid(leds, NUM_LEDS, CHSV(animationHue, 255, breath)); // Use selected color's hue
+      }
       FastLED.show();
       animationStep += 3;
       animationTimer = currentTime;
@@ -596,7 +606,8 @@ void updateAnimations() {
       fill_solid(leds, NUM_LEDS, CRGB::Black);
       for (int i = 0; i < 3; i++) {
         int pos = (animationStep + i) % NUM_LEDS;
-        leds[pos] = animationColor;
+        CRGB color = getPaletteColor(pos * 8);
+        leds[pos] = color;
       }
       FastLED.show();
       animationStep = (animationStep + 1) % NUM_LEDS;
@@ -625,9 +636,10 @@ void updateAnimations() {
     if (currentTime - animationTimer > 80) { // Update every 80ms
       fadeToBlackBy(leds, NUM_LEDS, 50);
       int pos = animationStep % NUM_LEDS;
-      leds[pos] = animationColor;
-      if (pos > 0) leds[pos - 1] = animationColor;
-      if (pos > 1) leds[pos - 2] = animationColor;
+      CRGB color = getPaletteColor(pos * 6);
+      leds[pos] = color;
+      if (pos > 0) leds[pos - 1] = color;
+      if (pos > 1) leds[pos - 2] = color;
       FastLED.show();
       animationStep++;
       animationTimer = currentTime;
@@ -640,7 +652,8 @@ void updateAnimations() {
       for (int i = 0; i < 3; i++) {
         if (random8() < 50) {
           int pos = random16(NUM_LEDS);
-          leds[pos] = animationColor;
+          CRGB color = getPaletteColor(random8());
+          leds[pos] = color;
         }
       }
       FastLED.show();
@@ -657,9 +670,10 @@ void updateAnimations() {
       } else {
         pos = (NUM_LEDS * 2) - animationStep - 1;
       }
-      leds[pos] = animationColor;
-      if (pos > 0) leds[pos - 1] = animationColor;
-      if (pos > 1) leds[pos - 2] = animationColor;
+      CRGB color = getPaletteColor(pos * 4);
+      leds[pos] = color;
+      if (pos > 0) leds[pos - 1] = color;
+      if (pos > 1) leds[pos - 2] = color;
       FastLED.show();
       animationStep++;
       if (animationStep >= NUM_LEDS * 2) animationStep = 0;
@@ -671,7 +685,8 @@ void updateAnimations() {
     if (currentTime - animationTimer > 30) { // Update every 30ms
       uint8_t brightness = beatsin8(60, 50, 255); // 60 BPM pulse
       for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = animationColor;
+        CRGB color = getPaletteColor(i * 8);
+        leds[i] = color;
         leds[i].nscale8(brightness);
       }
       FastLED.show();
@@ -684,9 +699,10 @@ void updateAnimations() {
       fadeToBlackBy(leds, NUM_LEDS, 64);
       for (int i = 0; i < 5; i++) { // 5 meteors
         int pos = (animationStep + (i * NUM_LEDS / 5)) % NUM_LEDS;
-        leds[pos] = animationColor;
-        if (pos > 0) leds[pos - 1] = animationColor;
-        if (pos > 1) leds[pos - 2] = animationColor;
+        CRGB color = getPaletteColor(pos * 5 + i * 50);
+        leds[pos] = color;
+        if (pos > 0) leds[pos - 1] = color;
+        if (pos > 1) leds[pos - 2] = color;
       }
       FastLED.show();
       animationStep = (animationStep + 1) % NUM_LEDS;
@@ -698,7 +714,8 @@ void updateAnimations() {
     if (currentTime - animationTimer > 150) { // Update every 150ms
       for (int i = 0; i < NUM_LEDS; i++) {
         if ((i + animationStep) % 3 == 0) {
-          leds[i] = animationColor;
+          CRGB color = getPaletteColor(i * 6);
+          leds[i] = color;
         } else {
           leds[i] = CRGB::Black;
         }
@@ -728,10 +745,17 @@ void updateAnimations() {
   
   else if (currentAnimation == "gradient") {
     if (currentTime - animationTimer > 50) { // Update every 50ms
-      CHSV startColor = rgb2hsv_approximate(animationColor);
-      for (int i = 0; i < NUM_LEDS; i++) {
-        uint8_t hue = startColor.hue + ((i * 255) / NUM_LEDS) + animationStep;
-        leds[i] = CHSV(hue, 255, 255);
+      if (usePalette) {
+        for (int i = 0; i < NUM_LEDS; i++) {
+          uint8_t paletteIndex = ((i * 255) / NUM_LEDS) + animationStep;
+          leds[i] = getPaletteColor(paletteIndex);
+        }
+      } else {
+        CHSV startColor = rgb2hsv_approximate(animationColor);
+        for (int i = 0; i < NUM_LEDS; i++) {
+          uint8_t hue = startColor.hue + ((i * 255) / NUM_LEDS) + animationStep;
+          leds[i] = CHSV(hue, 255, 255);
+        }
       }
       FastLED.show();
       animationStep += 1;
@@ -767,7 +791,6 @@ void updateAnimations() {
   
   else if (currentAnimation == "ripple") {
     if (currentTime - animationTimer > 40) { // Update every 40ms
-      CHSV baseColor = rgb2hsv_approximate(animationColor);
       int center = NUM_LEDS / 2;
       
       for (int i = 0; i < NUM_LEDS; i++) {
@@ -775,7 +798,14 @@ void updateAnimations() {
         uint8_t ripple = sin8(((distance * 32) - animationStep) % 256);
         uint8_t brightness = scale8(ripple, 200);
         
-        leds[i] = CHSV(baseColor.hue, 255, brightness);
+        if (usePalette) {
+          CRGB color = getPaletteColor(distance * 8 + animationStep / 4);
+          color.nscale8(brightness);
+          leds[i] = color;
+        } else {
+          CHSV baseColor = rgb2hsv_approximate(animationColor);
+          leds[i] = CHSV(baseColor.hue, 255, brightness);
+        }
       }
       FastLED.show();
       animationStep += 8;
@@ -785,14 +815,19 @@ void updateAnimations() {
   
   else if (currentAnimation == "sine") {
     if (currentTime - animationTimer > 25) { // Update every 25ms
-      CHSV baseColor = rgb2hsv_approximate(animationColor);
-      
       for (int i = 0; i < NUM_LEDS; i++) {
         // Pure sine wave across all LEDs
         uint8_t sineValue = sin8(((i * 256 / NUM_LEDS) + animationStep) % 256);
         uint8_t brightness = scale8(sineValue, 255);
         
-        leds[i] = CHSV(baseColor.hue, 255, brightness);
+        if (usePalette) {
+          CRGB color = getPaletteColor((i * 256 / NUM_LEDS) + animationStep / 4);
+          color.nscale8(brightness);
+          leds[i] = color;
+        } else {
+          CHSV baseColor = rgb2hsv_approximate(animationColor);
+          leds[i] = CHSV(baseColor.hue, 255, brightness);
+        }
       }
       FastLED.show();
       animationStep += 6;
