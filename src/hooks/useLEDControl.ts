@@ -15,6 +15,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [colorCycleMode, setColorCycleMode] = useState(false);
   const [matrixEyeColor, setMatrixEyeColor] = useState('GREEN');
   const [matrixPupilColor, setMatrixPupilColor] = useState('RED');
+  const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
 
   // Handle state updates from ESP32
   useEffect(() => {
@@ -162,10 +163,29 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   };
 
+  const handlePaletteSelect = async (paletteId: number) => {
+    setSelectedPalette(paletteId);
+
+    if (ledPower) {
+      const command = `PALETTE_${paletteId}`;
+      await sendBLECommand(command);
+    }
+  };
+
+  const handlePaletteDisable = async () => {
+    setSelectedPalette(null);
+
+    if (ledPower) {
+      const command = 'PALETTE_OFF';
+      await sendBLECommand(command);
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
     setColorCycleMode(false);
+    setSelectedPalette(null);
   };
 
   return {
@@ -176,6 +196,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     colorCycleMode,
     matrixEyeColor,
     matrixPupilColor,
+    selectedPalette,
     toggleLED,
     handleColorChange,
     handleBrightnessChange,
@@ -185,6 +206,8 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     toggleColorCycle,
     handleMatrixEyeColorChange,
     handleMatrixPupilColorChange,
+    handlePaletteSelect,
+    handlePaletteDisable,
     resetLEDState,
   };
 };

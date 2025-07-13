@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ANIMATIONS } from '../constants';
+import { SectionHeader, Button } from './ui';
+import { theme } from '../styles/theme';
 
 interface AnimationControlsProps {
   activeAnimation: string;
@@ -19,72 +21,67 @@ export const AnimationControls: React.FC<AnimationControlsProps> = ({
   onSolidMode,
   onToggleColorCycle,
 }) => {
-  const isDarkMode = useColorScheme() === 'dark';
-
   return (
     <View style={styles.animationSection}>
-      <Text style={styles.controlLabel}>
-        LED Animations
-      </Text>
+      <SectionHeader 
+        title="LED Animations" 
+        subtitle="Choose from various lighting effects"
+        icon="✨"
+        color={theme.colors.accent}
+      />
 
       <View style={styles.animationButtons}>
         {ANIMATIONS.map(animation => (
-          <TouchableOpacity
+          <Button
             key={animation.id}
+            title={animation.name}
+            onPress={() => onAnimationSelect(animation.id)}
+            variant="secondary"
+            size="sm"
+            selected={activeAnimation === animation.id}
             style={[
               styles.animationButton,
-              { backgroundColor: animation.color },
-              activeAnimation === animation.id &&
-                styles.selectedAnimationButton,
+              { backgroundColor: animation.color }
             ]}
-            onPress={() => onAnimationSelect(animation.id)}
-          >
-            <Text style={styles.animationButtonText}>
-              {animation.name}
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </View>
 
       <View style={styles.controlButtons}>
-        <TouchableOpacity
-          style={[
-            styles.controlButton,
-            styles.solidButton,
-            activeAnimation === 'solid' && styles.selectedControlButton,
-          ]}
+        <Button
+          title="🔘 Solid Mode"
           onPress={onSolidMode}
-        >
-          <Text style={styles.buttonText}>🔘 Solid Mode</Text>
-        </TouchableOpacity>
+          variant="primary"
+          size="md"
+          selected={activeAnimation === 'solid'}
+          style={styles.controlButton}
+        />
 
         {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
-          <TouchableOpacity
-            style={[styles.controlButton, styles.stopButton]}
+          <Button
+            title="⏹️ Stop Animation"
             onPress={onStopAnimation}
-          >
-            <Text style={styles.buttonText}>Stop Animation</Text>
-          </TouchableOpacity>
+            variant="secondary"
+            size="md"
+            style={styles.controlButton}
+          />
         )}
       </View>
 
       {/* Color Cycle Toggle - Only show for non-rainbow animations */}
       {activeAnimation !== 'none' && activeAnimation !== 'solid' && !['rainbow', 'pride', 'plasma'].includes(activeAnimation) && (
         <View style={styles.cycleSection}>
-          <TouchableOpacity
-            style={[
-              styles.cycleButton,
-              colorCycleMode && styles.cycleButtonActive,
-            ]}
+          <Button
+            title={`🌈 Color Cycle ${colorCycleMode ? 'ON' : 'OFF'}`}
             onPress={onToggleColorCycle}
-          >
-            <Text style={[styles.cycleButtonText, colorCycleMode && styles.cycleButtonTextActive]}>
-              🌈 Color Cycle {colorCycleMode ? 'ON' : 'OFF'}
-            </Text>
-          </TouchableOpacity>
+            variant="accent"
+            size="md"
+            selected={colorCycleMode}
+            style={styles.cycleButton}
+          />
           {colorCycleMode && (
             <Text style={styles.cycleInfo}>
-              Colors change every 10 seconds
+              ⏱️ Colors change automatically every 10 seconds
             </Text>
           )}
         </View>
@@ -95,89 +92,41 @@ export const AnimationControls: React.FC<AnimationControlsProps> = ({
 
 const styles = StyleSheet.create({
   animationSection: {
-    marginVertical: 15,
-  },
-  controlLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000814',
+    marginVertical: theme.spacing.md,
   },
   animationButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: theme.spacing.sm,
   },
   animationButton: {
     width: '48%',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  selectedAnimationButton: {
-    borderWidth: 3,
-    borderColor: '#000814',
-  },
-  animationButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
+    marginBottom: theme.spacing.sm,
   },
   controlButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 15,
-    gap: 10,
+    marginTop: theme.spacing.lg,
+    gap: theme.spacing.sm,
   },
   controlButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  solidButton: {
-    backgroundColor: '#003566',
-  },
-  stopButton: {
-    backgroundColor: '#001d3d',
-  },
-  selectedControlButton: {
-    borderWidth: 3,
-    borderColor: '#000814',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   cycleSection: {
-    marginTop: 15,
+    marginTop: theme.spacing.lg,
     alignItems: 'center',
   },
   cycleButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#001d3d',
-    borderWidth: 2,
-    borderColor: '#ffc300',
-  },
-  cycleButtonActive: {
-    backgroundColor: '#ffc300',
-  },
-  cycleButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffc300',
-  },
-  cycleButtonTextActive: {
-    color: '#000814',
+    marginBottom: theme.spacing.sm,
   },
   cycleInfo: {
-    fontSize: 12,
-    color: '#000814',
-    marginTop: 5,
-    opacity: 0.7,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.sm,
   },
 });

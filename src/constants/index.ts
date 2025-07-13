@@ -21,6 +21,12 @@ export const ANIMATIONS: Animation[] = [
   { id: 'theater', name: '🎭 Theater Chase', color: '#26C281' },
   { id: 'plasma', name: '🌊 Plasma Wave', color: '#4834D4' },
   { id: 'gradient', name: '🌈 Color Gradient', color: '#FF9F43' },
+  { id: 'aurora', name: '🌌 Aurora Borealis', color: '#00FFA1' },
+  { id: 'ripple', name: '💧 Ripple Effect', color: '#36D1DC' },
+  { id: 'sine', name: '〰️ Sine Wave', color: '#667eea' },
+  { id: 'spiral', name: '🌀 Spiral Flow', color: '#f093fb' },
+  { id: 'kaleidoscope', name: '🔮 Kaleidoscope', color: '#fad0c4' },
+  { id: 'ocean', name: '🌊 Ocean Depths', color: '#209cff' },
 ];
 
 export const COLOR_OPTIONS: ColorOption[] = [
@@ -35,3 +41,13 @@ export const COLOR_OPTIONS: ColorOption[] = [
 ];
 
 export const RAINBOW_ANIMATIONS = ['rainbow', 'pride'];
+
+export const COLOR_PALETTES = [
+  { id: 0, name: '🏞️ Landscape', description: 'Earth tones and natural greens', colors: ['#000000', '#4FD501', '#7ED32F', '#0125C0'] },
+  { id: 1, name: '🌊 Ocean', description: 'Deep blues and ocean waves', colors: ['#010607', '#01636F', '#90D1FF', '#004952'] },
+  { id: 2, name: '🌅 Sunset', description: 'Warm sunset colors', colors: ['#780000', '#FF6800', '#640067', '#200020'] },
+  { id: 3, name: '🍂 Autumn', description: 'Fall leaves and warm browns', colors: ['#1A0101', '#430401', '#760E01', '#899834'] },
+  { id: 4, name: '🔥 Fire', description: 'Hot flames and embers', colors: ['#000000', '#CC0000', '#FF6600', '#FFFF00'] },
+  { id: 5, name: '❄️ Ice', description: 'Cool blues and whites', colors: ['#000033', '#0099CC', '#99FFFF', '#FFFFFF'] },
+  { id: 6, name: '💫 Neon', description: 'Bright electric colors', colors: ['#FF00FF', '#FF0000', '#00FF00', '#00FFFF'] },
+];

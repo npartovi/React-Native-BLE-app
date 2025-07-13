@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Card, SectionHeader, Button } from './ui';
+import { theme } from '../styles/theme';
 
 interface MatrixControlsProps {
   matrixEyeColor: string;
@@ -21,10 +23,13 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   onMatrixPupilColorChange,
 }) => {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        8x8 Matrix Eye Animation
-      </Text>
+    <Card>
+      <SectionHeader 
+        title="8x8 Matrix Eye Animation" 
+        subtitle="Control your bicolor LED matrix display"
+        icon="👁️"
+        color={theme.colors.matrix}
+      />
 
       <View style={styles.colorSection}>
         <Text style={styles.controlLabel}>
@@ -32,19 +37,18 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         </Text>
         <View style={styles.colorButtons}>
           {MATRIX_COLORS.map(color => (
-            <TouchableOpacity
+            <Button
               key={color.id}
+              title={color.name}
+              onPress={() => onMatrixEyeColorChange(color.id)}
+              variant="matrix"
+              size="sm"
+              selected={matrixEyeColor === color.id}
               style={[
                 styles.colorButton,
-                { backgroundColor: color.color },
-                matrixEyeColor === color.id && styles.selectedColorButton,
+                { backgroundColor: color.color }
               ]}
-              onPress={() => onMatrixEyeColorChange(color.id)}
-            >
-              <Text style={styles.colorButtonText}>
-                {color.name}
-              </Text>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </View>
@@ -53,71 +57,57 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         <Text style={styles.controlLabel}>
           Pupil Color (Secondary)
         </Text>
+        <Text style={styles.tip}>
+          💡 Tip: Match eye and pupil colors for transparent pupil effect
+        </Text>
         <View style={styles.colorButtons}>
           {MATRIX_COLORS.map(color => (
-            <TouchableOpacity
+            <Button
               key={color.id}
+              title={color.name}
+              onPress={() => onMatrixPupilColorChange(color.id)}
+              variant="matrix"
+              size="sm"
+              selected={matrixPupilColor === color.id}
               style={[
                 styles.colorButton,
-                { backgroundColor: color.color },
-                matrixPupilColor === color.id && styles.selectedColorButton,
+                { backgroundColor: color.color }
               ]}
-              onPress={() => onMatrixPupilColorChange(color.id)}
-            >
-              <Text style={styles.colorButtonText}>
-                {color.name}
-              </Text>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </View>
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 25,
-    padding: 15,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ff6b35',
-    backgroundColor: '#ff6b35',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#000814',
-  },
   controlLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000814',
+    ...theme.typography.bodyBold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
   },
   colorSection: {
-    marginTop: 10,
+    marginBottom: theme.spacing.lg,
   },
   colorButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: theme.spacing.sm,
   },
   colorButton: {
     width: '30%',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
   },
-  selectedColorButton: {
-    borderWidth: 3,
-    borderColor: '#000814',
-  },
-  colorButtonText: {
-    color: '#000814',
-    fontSize: 14,
-    fontWeight: 'bold',
+  tip: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.sm,
   },
 });

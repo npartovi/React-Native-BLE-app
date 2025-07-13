@@ -45,6 +45,62 @@ CRGB cycleColors[] = {
 };
 int numCycleColors = 8;
 
+// Palette system variables
+int currentPaletteIndex = 0;
+bool usePalette = false;
+
+// Define gradient palettes (WLED-inspired)
+const PROGMEM TProgmemPalette16 palette_landscape = {
+  0x000000, 0x02190, 0x0F7305, 0x4FD501,
+  0x7ED32F, 0xBCD1F7, 0x90B6CD, 0x3B75FA,
+  0x0125C0, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_ocean = {
+  0x010607, 0x01636F, 0x90D1FF, 0x004952,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_sunset = {
+  0x780000, 0xFF6800, 0x640067, 0x200020,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_autumn = {
+  0x1A0101, 0x430401, 0x760E01, 0x899834,
+  0x714101, 0x85953B, 0x899834, 0x714101,
+  0x8B9A2E, 0x710D01, 0x370301, 0x110101,
+  0x110101, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_fire = {
+  0x000000, 0x330000, 0x660000, 0x990000,
+  0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600,
+  0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33,
+  0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF
+};
+
+const PROGMEM TProgmemPalette16 palette_ice = {
+  0x000033, 0x000066, 0x003366, 0x006699,
+  0x0099CC, 0x00CCFF, 0x33DDFF, 0x66EEFF,
+  0x99FFFF, 0xCCFFFF, 0xFFFFFF, 0xFFFFFF,
+  0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF
+};
+
+const PROGMEM TProgmemPalette16 palette_neon = {
+  0xFF00FF, 0xFF0080, 0xFF0000, 0xFF8000,
+  0xFFFF00, 0x80FF00, 0x00FF00, 0x00FF80,
+  0x00FFFF, 0x0080FF, 0x0000FF, 0x8000FF,
+  0xFF00FF, 0xFF0080, 0xFF0000, 0xFF8000
+};
+
+CRGBPalette16 currentPalette;
+
 // Pride2015 animation variables
 uint16_t sPseudotime = 0;
 uint16_t sLastMillis = 0;
@@ -125,6 +181,8 @@ void updateMatrixAnimation();
 void blinkingAnimation();
 void gazingAnimation();
 void processMatrixCommand(String command);
+void setPalette(int paletteIndex);
+CRGB getPaletteColor(uint8_t index);
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -190,6 +248,15 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         else if (command.startsWith("MATRIX_")) {
           processMatrixCommand(command);
         }
+        else if (command.startsWith("PALETTE_")) {
+          String paletteNum = command.substring(8);
+          int paletteIndex = paletteNum.toInt();
+          setPalette(paletteIndex);
+        }
+        else if (command == "PALETTE_OFF") {
+          usePalette = false;
+          Serial.println("Palette mode disabled");
+        }
         else {
           Serial.println("Unrecognized command");
         }
@@ -212,6 +279,9 @@ void setup() {
   // Initialize 8x8 Matrix
   matrix.begin(0x70);
   randomSeed(analogRead(0));
+
+  // Initialize default palette
+  setPalette(0);
 
   // Create the BLE Device with iOS-friendly name
   BLEDevice::init("ESP32 LED Controller");
@@ -483,7 +553,13 @@ void updateAnimations() {
     if (currentTime - animationTimer > 50) { // Update every 50ms
       for (int i = 0; i < NUM_LEDS; i++) {
         uint8_t brightness = sin8(((i * 256 / NUM_LEDS) + animationStep) % 256);
-        leds[i] = CHSV(animationHue, 255, brightness); // Use selected color's hue
+        if (usePalette) {
+          uint8_t paletteIndex = (i * 256 / NUM_LEDS) + (animationStep / 2);
+          leds[i] = getPaletteColor(paletteIndex);
+          leds[i].nscale8(brightness);
+        } else {
+          leds[i] = CHSV(animationHue, 255, brightness);
+        }
       }
       FastLED.show();
       animationStep += 8;
@@ -636,8 +712,13 @@ void updateAnimations() {
   else if (currentAnimation == "plasma") {
     if (currentTime - animationTimer > 40) { // Update every 40ms
       for (int i = 0; i < NUM_LEDS; i++) {
-        uint8_t hue = sin8((i * 16) + animationStep) + sin8((i * 8) + (animationStep / 2));
-        leds[i] = CHSV(hue, 255, 255);
+        if (usePalette) {
+          uint8_t paletteIndex = sin8((i * 16) + animationStep) + sin8((i * 8) + (animationStep / 2));
+          leds[i] = getPaletteColor(paletteIndex);
+        } else {
+          uint8_t hue = sin8((i * 16) + animationStep) + sin8((i * 8) + (animationStep / 2));
+          leds[i] = CHSV(hue, 255, 255);
+        }
       }
       FastLED.show();
       animationStep += 2;
@@ -654,6 +735,131 @@ void updateAnimations() {
       }
       FastLED.show();
       animationStep += 1;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "aurora") {
+    if (currentTime - animationTimer > 30) { // Update every 30ms
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // Create multiple overlapping sine waves for aurora effect
+        uint8_t wave1 = sin8((i * 16) + animationStep);
+        uint8_t wave2 = sin8((i * 23) + (animationStep * 2));
+        uint8_t wave3 = sin8((i * 11) + (animationStep / 2));
+        
+        uint8_t brightness = (wave1 + wave2 + wave3) / 3;
+        
+        if (usePalette) {
+          uint8_t paletteIndex = (i * 8) + (animationStep / 3);
+          leds[i] = getPaletteColor(paletteIndex);
+          leds[i].nscale8(brightness);
+        } else {
+          CHSV baseColor = rgb2hsv_approximate(animationColor);
+          uint8_t hue = baseColor.hue + sin8((i * 8) + animationStep / 3);
+          leds[i] = CHSV(hue, 200, brightness);
+        }
+      }
+      FastLED.show();
+      animationStep += 3;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "ripple") {
+    if (currentTime - animationTimer > 40) { // Update every 40ms
+      CHSV baseColor = rgb2hsv_approximate(animationColor);
+      int center = NUM_LEDS / 2;
+      
+      for (int i = 0; i < NUM_LEDS; i++) {
+        int distance = abs(i - center);
+        uint8_t ripple = sin8(((distance * 32) - animationStep) % 256);
+        uint8_t brightness = scale8(ripple, 200);
+        
+        leds[i] = CHSV(baseColor.hue, 255, brightness);
+      }
+      FastLED.show();
+      animationStep += 8;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "sine") {
+    if (currentTime - animationTimer > 25) { // Update every 25ms
+      CHSV baseColor = rgb2hsv_approximate(animationColor);
+      
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // Pure sine wave across all LEDs
+        uint8_t sineValue = sin8(((i * 256 / NUM_LEDS) + animationStep) % 256);
+        uint8_t brightness = scale8(sineValue, 255);
+        
+        leds[i] = CHSV(baseColor.hue, 255, brightness);
+      }
+      FastLED.show();
+      animationStep += 6;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "spiral") {
+    if (currentTime - animationTimer > 35) { // Update every 35ms
+      CHSV baseColor = rgb2hsv_approximate(animationColor);
+      
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // Create spiral pattern with overlapping phases
+        uint8_t phase1 = sin8(((i * 20) + animationStep) % 256);
+        uint8_t phase2 = cos8(((i * 15) + (animationStep * 2)) % 256);
+        uint8_t brightness = (phase1 + phase2) / 2;
+        uint8_t hue = baseColor.hue + (i * 8) + (animationStep / 4);
+        
+        leds[i] = CHSV(hue, 255, brightness);
+      }
+      FastLED.show();
+      animationStep += 4;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "kaleidoscope") {
+    if (currentTime - animationTimer > 45) { // Update every 45ms
+      CHSV baseColor = rgb2hsv_approximate(animationColor);
+      
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // Complex mathematical pattern
+        uint8_t pattern1 = sin8((i * 32) + animationStep);
+        uint8_t pattern2 = cos8((i * 21) + (animationStep * 3));
+        uint8_t pattern3 = sin8((i * 13) + (animationStep / 2));
+        
+        uint8_t brightness = (pattern1 + pattern2 + pattern3) / 3;
+        uint8_t hue = baseColor.hue + pattern1 / 4 + pattern2 / 6;
+        uint8_t saturation = 200 + (pattern3 / 8);
+        
+        leds[i] = CHSV(hue, saturation, brightness);
+      }
+      FastLED.show();
+      animationStep += 5;
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "ocean") {
+    if (currentTime - animationTimer > 60) { // Update every 60ms for slower, deeper effect
+      CHSV baseColor = rgb2hsv_approximate(animationColor);
+      
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // Simulate ocean waves with multiple layers
+        uint8_t wave1 = sin8(((i * 12) + animationStep) % 256);
+        uint8_t wave2 = sin8(((i * 18) + (animationStep + animationStep/2)) % 256);
+        uint8_t wave3 = sin8(((i * 25) + (animationStep / 3)) % 256);
+        
+        // Combine waves for depth effect
+        uint8_t depth = (wave1 / 3) + (wave2 / 3) + (wave3 / 3);
+        uint8_t brightness = 80 + depth; // Darker base with wave highlights
+        uint8_t hue = baseColor.hue + sin8((i * 6) + animationStep / 4) / 8;
+        
+        leds[i] = CHSV(hue, 255, brightness);
+      }
+      FastLED.show();
+      animationStep += 2;
       animationTimer = currentTime;
     }
   }
@@ -869,5 +1075,60 @@ void gazingAnimation() {
   } else {
     // Not in motion yet -- draw pupil at current static position (or transparent if same color)
     matrix.fillRect(eyeX, eyeY, 2, 2, pupilDrawColor);
+  }
+}
+
+void setPalette(int paletteIndex) {
+  currentPaletteIndex = paletteIndex;
+  usePalette = true;
+  
+  switch(paletteIndex) {
+    case 0:
+      currentPalette = palette_landscape;
+      Serial.println("Palette: Landscape");
+      break;
+    case 1:
+      currentPalette = palette_ocean;
+      Serial.println("Palette: Ocean");
+      break;
+    case 2:
+      currentPalette = palette_sunset;
+      Serial.println("Palette: Sunset");
+      break;
+    case 3:
+      currentPalette = palette_autumn;
+      Serial.println("Palette: Autumn");
+      break;
+    case 4:
+      currentPalette = palette_fire;
+      Serial.println("Palette: Fire");
+      break;
+    case 5:
+      currentPalette = palette_ice;
+      Serial.println("Palette: Ice");
+      break;
+    case 6:
+      currentPalette = palette_neon;
+      Serial.println("Palette: Neon");
+      break;
+    default:
+      currentPalette = palette_landscape;
+      Serial.println("Palette: Default (Landscape)");
+      break;
+  }
+  
+  // Send confirmation back to app
+  if (deviceConnected) {
+    String response = "PALETTE_OK_" + String(paletteIndex);
+    pCharacteristic->setValue(response.c_str());
+    pCharacteristic->notify();
+  }
+}
+
+CRGB getPaletteColor(uint8_t index) {
+  if (usePalette) {
+    return ColorFromPalette(currentPalette, index, 255, LINEARBLEND);
+  } else {
+    return animationColor;
   }
 }

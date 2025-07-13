@@ -9,6 +9,7 @@ import {
   Text,
   SafeAreaView,
 } from 'react-native';
+import { theme } from './src/styles/theme';
 import {
   Header,
   BluetoothStatusCard,
@@ -51,7 +52,7 @@ function App() {
   }, [connectedDevice]);
 
   const backgroundStyle = {
-    backgroundColor: '#000814',
+    backgroundColor: theme.colors.background,
   };
 
   if (showLaunchScreen) {
@@ -97,6 +98,7 @@ function App() {
             colorCycleMode={ledControl.colorCycleMode}
             matrixEyeColor={ledControl.matrixEyeColor}
             matrixPupilColor={ledControl.matrixPupilColor}
+            selectedPalette={ledControl.selectedPalette}
             toggleLED={ledControl.toggleLED}
             handleColorChange={ledControl.handleColorChange}
             handleBrightnessChange={ledControl.handleBrightnessChange}
@@ -106,6 +108,8 @@ function App() {
             toggleColorCycle={ledControl.toggleColorCycle}
             handleMatrixEyeColorChange={ledControl.handleMatrixEyeColorChange}
             handleMatrixPupilColorChange={ledControl.handleMatrixPupilColorChange}
+            handlePaletteSelect={ledControl.handlePaletteSelect}
+            handlePaletteDisable={ledControl.handlePaletteDisable}
           />
         )}
       </ScrollView>
@@ -116,10 +120,10 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000814',
+    backgroundColor: theme.colors.background,
   },
   scrollView: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
 });
 
