@@ -14,7 +14,6 @@ export const ANIMATIONS: Animation[] = [
   { id: 'chase', name: '🏃 Chase', color: '#FF8C42' },
   { id: 'fire', name: '🔥 Fire', color: '#FF4757' },
   { id: 'comet', name: '☄️ Comet', color: '#5F27CD' },
-  { id: 'twinkle', name: '⭐ Twinkle', color: '#00D2D3' },
   { id: 'scanner', name: '👁️ Scanner', color: '#FF3838' },
   { id: 'pulse', name: '💓 Pulse Wave', color: '#FF6B9D' },
   { id: 'meteor', name: '🌌 Meteor Rain', color: '#A55EEA' },
@@ -27,6 +26,7 @@ export const ANIMATIONS: Animation[] = [
   { id: 'spiral', name: '🌀 Spiral Flow', color: '#f093fb' },
   { id: 'kaleidoscope', name: '🔮 Kaleidoscope', color: '#fad0c4' },
   { id: 'ocean', name: '🌊 Ocean Depths', color: '#209cff' },
+  { id: 'random', name: '🎲 Random', color: '#FF00FF' },
 ];
 
 export const COLOR_OPTIONS: ColorOption[] = [
@@ -58,4 +58,9 @@ export const COLOR_PALETTES = [
   { id: 4, name: '🔥 Fire', description: 'Hot flames and embers', colors: ['#000000', '#CC0000', '#FF6600', '#FFFF00'] },
   { id: 5, name: '❄️ Ice', description: 'Cool blues and whites', colors: ['#000033', '#0099CC', '#99FFFF', '#FFFFFF'] },
   { id: 6, name: '💫 Neon', description: 'Bright electric colors', colors: ['#FF00FF', '#FF0000', '#00FF00', '#00FFFF'] },
+  { id: 7, name: '🌸 Sakura', description: 'Cherry blossom pinks and reds', colors: ['#C4130A', '#FF453D', '#DF2D48', '#FF5267'] },
+  { id: 8, name: '🌌 Aurora', description: 'Northern lights greens and blues', colors: ['#010D2D', '#00C817', '#00FF00', '#008707'] },
+  { id: 9, name: '🍊 Orangery', description: 'Vibrant orange and red tones', colors: ['#FF5F17', '#FF5200', '#DF0D08', '#FF4500'] },
+  { id: 10, name: '🌙 April Night', description: 'Cool night blues and greens', colors: ['#01052D', '#05A9AF', '#2DAF1F', '#F99605'] },
+  { id: 11, name: '🐉 Tiamat', description: 'Mystical purples and teals', colors: ['#010214', '#0D875C', '#2BFFC1', '#F707F9'] },
 ];

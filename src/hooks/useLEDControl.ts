@@ -182,6 +182,13 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   };
 
+  const handleRandomIntervalChange = async (seconds: number) => {
+    if (ledPower) {
+      const command = `RANDOM_INTERVAL_${seconds}`;
+      await sendBLECommand(command);
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
@@ -209,6 +216,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     handleMatrixPupilColorChange,
     handlePaletteSelect,
     handlePaletteDisable,
+    handleRandomIntervalChange,
     resetLEDState,
   };
 };

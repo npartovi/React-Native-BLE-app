@@ -45,6 +45,22 @@ CRGB cycleColors[] = {
 };
 int numCycleColors = 8;
 
+// Random effect variables
+unsigned long randomEffectTimer = 0;
+unsigned long randomInterval = 10000; // Default 10 seconds (10000ms)
+String randomCurrentAnimation = "";
+CRGB randomAnimationColor = CRGB::White;
+uint8_t randomMatrixEyeColor = LED_GREEN;
+uint8_t randomMatrixPupilColor = LED_RED;
+const String availableAnimations[] = {
+  "rainbow", "pride", "fade", "strobe", "wave", "sparkle", "breathe", "chase",
+  "fire", "comet", "scanner", "pulse", "meteor", "theater", "plasma",
+  "gradient", "aurora", "ripple", "sine", "spiral", "kaleidoscope", "ocean", "solid"
+};
+const int numAvailableAnimations = 23;
+const uint8_t matrixColors[] = {LED_GREEN, LED_YELLOW, LED_RED};
+const int numMatrixColors = 3;
+
 // Palette system variables
 int currentPaletteIndex = 0;
 bool usePalette = false;
@@ -97,6 +113,41 @@ const PROGMEM TProgmemPalette16 palette_neon = {
   0xFFFF00, 0x80FF00, 0x00FF00, 0x00FF80,
   0x00FFFF, 0x0080FF, 0x0000FF, 0x8000FF,
   0xFF00FF, 0xFF0080, 0xFF0000, 0xFF8000
+};
+
+const PROGMEM TProgmemPalette16 palette_sakura = {
+  0xC4130A, 0xFF453D, 0xDF2D48, 0xFF5267,
+  0xDF0D11, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_aurora = {
+  0x010D2D, 0x00C817, 0x00FF00, 0x00F32D,
+  0x008707, 0x010D2D, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_orangery = {
+  0xFF5F17, 0xFF5200, 0xDF0D08, 0x904C02,
+  0xFF6E11, 0xFF4500, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_april_night = {
+  0x01052D, 0x05A9AF, 0x01052D, 0x2DAF1F,
+  0x01052D, 0xF99605, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
+};
+
+const PROGMEM TProgmemPalette16 palette_tiamat = {
+  0x010214, 0x02053, 0x0D875C, 0x2BFFC1,
+  0xF707F9, 0xC111D0, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000,
+  0x000000, 0x000000, 0x000000, 0x000000
 };
 
 CRGBPalette16 currentPalette;
@@ -183,6 +234,7 @@ void gazingAnimation();
 void processMatrixCommand(String command);
 void setPalette(int paletteIndex);
 CRGB getPaletteColor(uint8_t index);
+void setupRandomColorMode(String animation);
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -256,6 +308,23 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         else if (command == "PALETTE_OFF") {
           usePalette = false;
           Serial.println("Palette mode disabled");
+        }
+        else if (command.startsWith("RANDOM_INTERVAL_")) {
+          String intervalStr = command.substring(15); // Remove "RANDOM_INTERVAL_"
+          int intervalSeconds = intervalStr.toInt();
+          
+          // Validate interval (minimum 1 second, maximum 300 seconds = 5 minutes)
+          intervalSeconds = constrain(intervalSeconds, 1, 300);
+          randomInterval = intervalSeconds * 1000; // Convert to milliseconds
+          
+          Serial.printf("Random interval set to: %d seconds\n", intervalSeconds);
+          
+          // Send confirmation back to app
+          if (deviceConnected) {
+            String response = "RANDOM_INTERVAL_OK_" + String(intervalSeconds);
+            pCharacteristic->setValue(response.c_str());
+            pCharacteristic->notify();
+          }
         }
         else {
           Serial.println("Unrecognized command");
@@ -348,8 +417,10 @@ void loop() {
   // Handle color cycling
   updateColorCycle();
   
-  // Update matrix animation
-  updateMatrixAnimation();
+  // Update matrix animation (skip if in random mode)
+  if (currentAnimation != "random") {
+    updateMatrixAnimation();
+  }
   
   delay(10); // Small delay to prevent watchdog issues
 }
@@ -486,6 +557,30 @@ void processAnimationCommand(String command) {
   
   if (animationType == "stop") {
     stopAllAnimations();
+  } else if (animationType == "random") {
+    currentAnimation = "random";
+    randomEffectTimer = millis();
+    animationTimer = millis();
+    animationStep = 0;
+    rainbowHue = 0;
+    
+    // Initialize first random setup
+    randomCurrentAnimation = availableAnimations[random(numAvailableAnimations)];
+    
+    // Set up palette/color based on animation type
+    setupRandomColorMode(randomCurrentAnimation);
+    
+    // Random matrix colors
+    randomMatrixEyeColor = matrixColors[random(numMatrixColors)];
+    randomMatrixPupilColor = matrixColors[random(numMatrixColors)];
+    
+    Serial.println("Started random effect mode");
+    
+    // Send confirmation back to app
+    if (deviceConnected) {
+      pCharacteristic->setValue("ANIMATION_OK_RANDOM");
+      pCharacteristic->notify();
+    }
   } else {
     currentAnimation = animationType;
     animationTimer = millis();
@@ -570,15 +665,24 @@ void updateAnimations() {
   }
   
   else if (currentAnimation == "sparkle") {
-    if (currentTime - animationTimer > 100) { // Update every 100ms
+    if (currentTime - animationTimer > 60) { // Update every 60ms for more frequent sparkles
       // Fade all LEDs
-      fadeToBlackBy(leds, NUM_LEDS, 64);
+      fadeToBlackBy(leds, NUM_LEDS, 40);
       
-      // Add random sparkles using selected color
-      if (random8() < 80) {
-        int pos = random16(NUM_LEDS);
-        CRGB color = getPaletteColor(random8());
-        leds[pos] += color;
+      // Add multiple random sparkles for more intensity
+      for (int i = 0; i < 6; i++) {
+        if (random8() < 120) { // Higher probability for more sparkles
+          int pos = random16(NUM_LEDS);
+          CRGB color = getPaletteColor(random8());
+          leds[pos] = color; // Use assignment instead of += for brighter sparkles
+          
+          // Add neighboring sparkle effect for extra intensity
+          if (random8() < 60) {
+            int neighborPos = (pos + 1) % NUM_LEDS;
+            leds[neighborPos] = color;
+            leds[neighborPos].nscale8(150);
+          }
+        }
       }
       FastLED.show();
       animationTimer = currentTime;
@@ -633,33 +737,49 @@ void updateAnimations() {
   }
   
   else if (currentAnimation == "comet") {
-    if (currentTime - animationTimer > 80) { // Update every 80ms
-      fadeToBlackBy(leds, NUM_LEDS, 50);
-      int pos = animationStep % NUM_LEDS;
-      CRGB color = getPaletteColor(pos * 6);
-      leds[pos] = color;
-      if (pos > 0) leds[pos - 1] = color;
-      if (pos > 1) leds[pos - 2] = color;
+    if (currentTime - animationTimer > 40) { // Update every 40ms for smoother motion
+      fadeToBlackBy(leds, NUM_LEDS, 15); // Slower fade for longer tail
+      
+      // Create multiple comets traveling in both directions to use all LEDs
+      for (int comet = 0; comet < 3; comet++) {
+        int offset = (NUM_LEDS / 3) * comet;
+        int pos = (animationStep + offset) % NUM_LEDS;
+        CRGB color = getPaletteColor((pos + comet * 85) * 3);
+        
+        // Create comet tail with varying brightness
+        leds[pos] = color; // Head - full brightness
+        if (pos > 0 || comet > 0) {
+          int prevPos = (pos - 1 + NUM_LEDS) % NUM_LEDS;
+          leds[prevPos] = color;
+        }
+        if (pos > 1 || comet > 0) {
+          int prevPos2 = (pos - 2 + NUM_LEDS) % NUM_LEDS;
+          leds[prevPos2] = color;
+          leds[prevPos2].nscale8(200);
+        }
+        if (pos > 2 || comet > 0) {
+          int prevPos3 = (pos - 3 + NUM_LEDS) % NUM_LEDS;
+          leds[prevPos3] = color;
+          leds[prevPos3].nscale8(150);
+        }
+        if (pos > 3 || comet > 0) {
+          int prevPos4 = (pos - 4 + NUM_LEDS) % NUM_LEDS;
+          leds[prevPos4] = color;
+          leds[prevPos4].nscale8(100);
+        }
+        if (pos > 4 || comet > 0) {
+          int prevPos5 = (pos - 5 + NUM_LEDS) % NUM_LEDS;
+          leds[prevPos5] = color;
+          leds[prevPos5].nscale8(50);
+        }
+      }
+      
       FastLED.show();
       animationStep++;
       animationTimer = currentTime;
     }
   }
   
-  else if (currentAnimation == "twinkle") {
-    if (currentTime - animationTimer > 200) { // Update every 200ms
-      fadeToBlackBy(leds, NUM_LEDS, 30);
-      for (int i = 0; i < 3; i++) {
-        if (random8() < 50) {
-          int pos = random16(NUM_LEDS);
-          CRGB color = getPaletteColor(random8());
-          leds[pos] = color;
-        }
-      }
-      FastLED.show();
-      animationTimer = currentTime;
-    }
-  }
   
   else if (currentAnimation == "scanner") {
     if (currentTime - animationTimer > 60) { // Update every 60ms
@@ -711,17 +831,33 @@ void updateAnimations() {
   }
   
   else if (currentAnimation == "theater") {
-    if (currentTime - animationTimer > 150) { // Update every 150ms
+    if (currentTime - animationTimer > 100) { // Update every 100ms for smoother motion
+      // Create multiple overlapping theater chase patterns to use more LEDs
       for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = CRGB::Black; // Start with black
+        
+        // Primary chase pattern (every 3rd LED)
         if ((i + animationStep) % 3 == 0) {
           CRGB color = getPaletteColor(i * 6);
           leds[i] = color;
-        } else {
-          leds[i] = CRGB::Black;
+        }
+        
+        // Secondary chase pattern (offset pattern, dimmer)
+        if ((i + animationStep + 1) % 4 == 0) {
+          CRGB color2 = getPaletteColor((i + 128) * 4);
+          color2.nscale8(120); // 47% brightness for secondary pattern
+          leds[i] += color2; // Blend with primary
+        }
+        
+        // Tertiary chase pattern (another offset, even dimmer)
+        if ((i + animationStep + 2) % 5 == 0) {
+          CRGB color3 = getPaletteColor((i + 170) * 3);
+          color3.nscale8(80); // 31% brightness for tertiary pattern
+          leds[i] += color3; // Blend with existing
         }
       }
       FastLED.show();
-      animationStep = (animationStep + 1) % 3;
+      animationStep = (animationStep + 1) % 60; // Longer cycle for complex pattern
       animationTimer = currentTime;
     }
   }
@@ -897,6 +1033,69 @@ void updateAnimations() {
       animationStep += 2;
       animationTimer = currentTime;
     }
+  }
+  
+  else if (currentAnimation == "solid") {
+    // Simple solid color animation - just fill all LEDs with the animation color
+    if (currentTime - animationTimer > 100) { // Update every 100ms
+      fill_solid(leds, NUM_LEDS, animationColor);
+      FastLED.show();
+      animationTimer = currentTime;
+    }
+  }
+  
+  else if (currentAnimation == "random") {
+    // Check if it's time to switch to a new random setup
+    if (currentTime - randomEffectTimer > randomInterval) {
+      // Choose new random animation
+      String newAnimation;
+      do {
+        newAnimation = availableAnimations[random(numAvailableAnimations)];
+      } while (newAnimation == randomCurrentAnimation); // Ensure we get a different animation
+      
+      randomCurrentAnimation = newAnimation;
+      
+      // Set up palette/color based on animation type
+      setupRandomColorMode(randomCurrentAnimation);
+      
+      // Choose new random matrix colors
+      randomMatrixEyeColor = matrixColors[random(numMatrixColors)];
+      randomMatrixPupilColor = matrixColors[random(numMatrixColors)];
+      
+      // Reset animation variables
+      animationStep = 0;
+      animationTimer = currentTime;
+      randomEffectTimer = currentTime;
+      
+      Serial.printf("Random effect switched to: %s\n", randomCurrentAnimation.c_str());
+    }
+    
+    // Temporarily set the animation variables to the random values
+    CRGB savedAnimationColor = animationColor;
+    uint8_t savedAnimationHue = animationHue;
+    uint8_t savedMatrixEyeColor = matrixEyeColor;
+    uint8_t savedMatrixPupilColor = matrixPupilColor;
+    String savedCurrentAnimation = currentAnimation;
+    
+    animationColor = randomAnimationColor;
+    CHSV hsv = rgb2hsv_approximate(randomAnimationColor);
+    animationHue = hsv.hue;
+    matrixEyeColor = randomMatrixEyeColor;
+    matrixPupilColor = randomMatrixPupilColor;
+    currentAnimation = randomCurrentAnimation;
+    
+    // Run the current random animation
+    updateAnimations();
+    
+    // Update matrix animation with random colors
+    updateMatrixAnimation();
+    
+    // Restore the saved values
+    currentAnimation = savedCurrentAnimation;
+    animationColor = savedAnimationColor;
+    animationHue = savedAnimationHue;
+    matrixEyeColor = savedMatrixEyeColor;
+    matrixPupilColor = savedMatrixPupilColor;
   }
 }
 
@@ -1146,6 +1345,26 @@ void setPalette(int paletteIndex) {
       currentPalette = palette_neon;
       Serial.println("Palette: Neon");
       break;
+    case 7:
+      currentPalette = palette_sakura;
+      Serial.println("Palette: Sakura");
+      break;
+    case 8:
+      currentPalette = palette_aurora;
+      Serial.println("Palette: Aurora");
+      break;
+    case 9:
+      currentPalette = palette_orangery;
+      Serial.println("Palette: Orangery");
+      break;
+    case 10:
+      currentPalette = palette_april_night;
+      Serial.println("Palette: April Night");
+      break;
+    case 11:
+      currentPalette = palette_tiamat;
+      Serial.println("Palette: Tiamat");
+      break;
     default:
       currentPalette = palette_landscape;
       Serial.println("Palette: Default (Landscape)");
@@ -1165,5 +1384,42 @@ CRGB getPaletteColor(uint8_t index) {
     return ColorFromPalette(currentPalette, index, 255, LINEARBLEND);
   } else {
     return animationColor;
+  }
+}
+
+void setupRandomColorMode(String animation) {
+  // Define palette-enabled animations
+  const String paletteAnimations[] = {
+    "wave", "plasma", "scanner", "fade", "strobe", "sparkle", "breathe", 
+    "chase", "comet", "pulse", "meteor", "theater", "gradient", 
+    "aurora", "ripple", "sine", "spiral", "kaleidoscope", "ocean"
+  };
+  const int numPaletteAnimations = 19;
+  
+  // Check if this is a palette-enabled animation
+  bool isPaletteAnimation = false;
+  for (int i = 0; i < numPaletteAnimations; i++) {
+    if (animation == paletteAnimations[i]) {
+      isPaletteAnimation = true;
+      break;
+    }
+  }
+  
+  if (isPaletteAnimation) {
+    // For palette-enabled animations: always use random palette
+    usePalette = true;
+    int randomPaletteIndex = random(12); // Palettes 0-11
+    setPalette(randomPaletteIndex);
+    Serial.printf("Random mode: Using palette %d for %s\n", randomPaletteIndex, animation.c_str());
+  } else if (animation == "solid") {
+    // Solid animation always uses random solid color
+    usePalette = false;
+    randomAnimationColor = CRGB(random(256), random(256), random(256));
+    Serial.println("Random mode: Using solid color for solid animation");
+  } else {
+    // Non-palette animations (rainbow, pride, fire) - keep current behavior
+    // These animations ignore palettes anyway, just set a random color for consistency
+    randomAnimationColor = CRGB(random(256), random(256), random(256));
+    Serial.printf("Random mode: Non-palette animation %s, color set for consistency\n", animation.c_str());
   }
 }

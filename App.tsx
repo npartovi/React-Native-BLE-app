@@ -110,6 +110,7 @@ function App() {
             handleMatrixPupilColorChange={ledControl.handleMatrixPupilColorChange}
             handlePaletteSelect={ledControl.handlePaletteSelect}
             handlePaletteDisable={ledControl.handlePaletteDisable}
+            handleRandomIntervalChange={ledControl.handleRandomIntervalChange}
           />
         )}
       </ScrollView>

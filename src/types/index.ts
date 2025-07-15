@@ -31,6 +31,7 @@ export interface LEDContextType {
   handleMatrixPupilColorChange: (color: string) => Promise<void>;
   handlePaletteSelect: (paletteId: number) => Promise<void>;
   handlePaletteDisable: () => Promise<void>;
+  handleRandomIntervalChange: (seconds: number) => Promise<void>;
 }
 
 export interface Animation {
