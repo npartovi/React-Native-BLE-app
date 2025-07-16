@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Card, SectionHeader, Button } from './ui';
+import { Card, SectionHeader } from './ui';
 import { theme } from '../styles/theme';
 
 interface MatrixControlsProps {
@@ -11,10 +11,43 @@ interface MatrixControlsProps {
 }
 
 const MATRIX_COLORS = [
-  { id: 'GREEN', name: '🟢 Green', color: '#4CAF50' },
-  { id: 'YELLOW', name: '🟡 Yellow', color: '#FFEB3B' },
-  { id: 'RED', name: '🔴 Red', color: '#F44336' },
+  { id: 'GREEN', color: theme.colors.success },
+  { id: 'YELLOW', color: theme.colors.warning },
+  { id: 'RED', color: theme.colors.error },
 ];
+
+const EyeVisualization: React.FC<{
+  eyeColor: string;
+  pupilColor: string;
+}> = ({ eyeColor, pupilColor }) => {
+  const getActualColor = (colorId: string) => {
+    const colorMap = {
+      'GREEN': theme.colors.success,
+      'YELLOW': theme.colors.warning,
+      'RED': theme.colors.error,
+    };
+    return colorMap[colorId] || theme.colors.success;
+  };
+
+  const actualEyeColor = getActualColor(eyeColor);
+  const actualPupilColor = getActualColor(pupilColor);
+  const isPupilTransparent = eyeColor === pupilColor;
+
+  return (
+    <View style={styles.eyeContainer}>
+      <View style={[styles.eye, { backgroundColor: actualEyeColor }]}>
+        {!isPupilTransparent && (
+          <View style={[styles.pupil, { backgroundColor: actualPupilColor }]} />
+        )}
+      </View>
+      <View style={[styles.eye, { backgroundColor: actualEyeColor }]}>
+        {!isPupilTransparent && (
+          <View style={[styles.pupil, { backgroundColor: actualPupilColor }]} />
+        )}
+      </View>
+    </View>
+  );
+};
 
 export const MatrixControls: React.FC<MatrixControlsProps> = ({
   matrixEyeColor,
@@ -25,54 +58,49 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   return (
     <Card>
       <SectionHeader 
-        title="8x8 Matrix Eye Animation" 
-        subtitle="Control your bicolor LED matrix display"
+        title="Matrix Eyes" 
+        subtitle="Control your LED matrix display"
         icon="👁️"
         color={theme.colors.matrix}
       />
 
+      {/* Eye Visualization */}
+      <EyeVisualization 
+        eyeColor={matrixEyeColor}
+        pupilColor={matrixPupilColor}
+      />
+
+      {/* Eye Color Selection */}
       <View style={styles.colorSection}>
-        <Text style={styles.controlLabel}>
-          Eye Color (Primary)
-        </Text>
-        <View style={styles.colorButtons}>
+        <Text style={styles.controlLabel}>Eye Color</Text>
+        <View style={styles.colorSwatches}>
           {MATRIX_COLORS.map(color => (
-            <Button
+            <TouchableOpacity
               key={color.id}
-              title={color.name}
-              onPress={() => onMatrixEyeColorChange(color.id)}
-              variant="matrix"
-              size="sm"
-              selected={matrixEyeColor === color.id}
               style={[
-                styles.colorButton,
-                { backgroundColor: color.color }
+                styles.colorSwatch,
+                { backgroundColor: color.color },
+                matrixEyeColor === color.id && styles.selectedSwatch,
               ]}
+              onPress={() => onMatrixEyeColorChange(color.id)}
             />
           ))}
         </View>
       </View>
 
+      {/* Pupil Color Selection */}
       <View style={styles.colorSection}>
-        <Text style={styles.controlLabel}>
-          Pupil Color (Secondary)
-        </Text>
-        <Text style={styles.tip}>
-          💡 Tip: Match eye and pupil colors for transparent pupil effect
-        </Text>
-        <View style={styles.colorButtons}>
+        <Text style={styles.controlLabel}>Pupil Color</Text>
+        <View style={styles.colorSwatches}>
           {MATRIX_COLORS.map(color => (
-            <Button
+            <TouchableOpacity
               key={color.id}
-              title={color.name}
-              onPress={() => onMatrixPupilColorChange(color.id)}
-              variant="matrix"
-              size="sm"
-              selected={matrixPupilColor === color.id}
               style={[
-                styles.colorButton,
-                { backgroundColor: color.color }
+                styles.colorSwatch,
+                { backgroundColor: color.color },
+                matrixPupilColor === color.id && styles.selectedSwatch,
               ]}
+              onPress={() => onMatrixPupilColorChange(color.id)}
             />
           ))}
         </View>
@@ -82,32 +110,56 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
 };
 
 const styles = StyleSheet.create({
-  controlLabel: {
-    ...theme.typography.bodyBold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
+  eyeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: theme.spacing.xl,
+    gap: theme.spacing.lg,
+  },
+  eye: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: theme.colors.border,
+    ...theme.shadows.md,
+  },
+  pupil: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: theme.colors.textInverse,
   },
   colorSection: {
     marginBottom: theme.spacing.lg,
   },
-  colorButtons: {
+  controlLabel: {
+    ...theme.typography.bodyBold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.md,
+    textAlign: 'center',
+  },
+  colorSwatches: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: theme.spacing.sm,
+    justifyContent: 'center',
+    gap: theme.spacing.md,
   },
-  colorButton: {
-    width: '30%',
-    marginBottom: theme.spacing.sm,
+  colorSwatch: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 3,
+    borderColor: theme.colors.border,
+    ...theme.shadows.sm,
   },
-  tip: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
-    fontStyle: 'italic',
-    marginBottom: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.sm,
+  selectedSwatch: {
+    borderColor: theme.colors.textPrimary,
+    borderWidth: 4,
+    transform: [{ scale: 1.1 }],
+    ...theme.shadows.lg,
   },
 });
