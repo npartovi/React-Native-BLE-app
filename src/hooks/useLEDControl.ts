@@ -39,6 +39,13 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   }, [connectedDevice, setNotificationCallback]);
 
+  // Set default animation to solid when first connecting
+  useEffect(() => {
+    if (connectedDevice) {
+      setDefaultConnectionState();
+    }
+  }, [connectedDevice]);
+
   const toggleLED = async () => {
     const newPowerState = !ledPower;
     const command = newPowerState ? 'LED_ON' : 'LED_OFF';
@@ -194,6 +201,16 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     setLedPower(false);
     setColorCycleMode(false);
     setSelectedPalette(null);
+    setActiveAnimation('none');
+  };
+
+  // Set default state when connecting for the first time
+  const setDefaultConnectionState = async () => {
+    setActiveAnimation('solid');
+    // Send the solid command to ESP32 if LED is on
+    if (ledPower) {
+      await sendBLECommand('SOLID');
+    }
   };
 
   return {
@@ -218,5 +235,6 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     handlePaletteDisable,
     handleRandomIntervalChange,
     resetLEDState,
+    setDefaultConnectionState,
   };
 };

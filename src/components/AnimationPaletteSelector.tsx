@@ -56,12 +56,6 @@ export const AnimationPaletteSelector: React.FC<
 
   return (
     <Card>
-      <SectionHeader
-        title="LED Effects & Colors"
-        subtitle="Control your LED animations and colors"
-        icon="✨"
-        color={theme.colors.accent}
-      />
 
       {/* Effects Horizontal List - Above Cloud */}
       <View style={styles.effectsSection}>

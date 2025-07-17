@@ -72,21 +72,23 @@ function App() {
         {/* Header - Only show when not connected */}
         {!connectedDevice && <Header />}
 
-        {/* Combined Bluetooth & Connection Status */}
-        <BluetoothStatusCard
-          bluetoothState={bluetoothState}
-          connectedDevice={connectedDevice}
-          onDisconnect={disconnectDevice}
-        />
-
         {/* Device Scanner - Only show when not connected */}
         {!connectedDevice && (
-          <DeviceScanner
-            isScanning={isScanning}
-            discoveredDevices={discoveredDevices}
-            onScan={scanForDevices}
-            onConnect={connectToDevice}
-          />
+          <>
+            {/* Combined Bluetooth & Connection Status */}
+            <BluetoothStatusCard
+              bluetoothState={bluetoothState}
+              connectedDevice={connectedDevice}
+              onDisconnect={disconnectDevice}
+            />
+            
+            <DeviceScanner
+              isScanning={isScanning}
+              discoveredDevices={discoveredDevices}
+              onScan={scanForDevices}
+              onConnect={connectToDevice}
+            />
+          </>
         )}
 
         {/* LED Controls - Only show when connected */}
@@ -112,6 +114,9 @@ function App() {
             handlePaletteSelect={ledControl.handlePaletteSelect}
             handlePaletteDisable={ledControl.handlePaletteDisable}
             handleRandomIntervalChange={ledControl.handleRandomIntervalChange}
+            bluetoothState={bluetoothState}
+            connectedDevice={connectedDevice}
+            onDisconnect={disconnectDevice}
           />
         )}
       </ScrollView>
