@@ -22,12 +22,12 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
 
   const handleValueChange = (value: number) => {
     setLocalBrightness(value);
-    
+
     // Clear existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     // Set new timeout to send command after user stops dragging
     timeoutRef.current = setTimeout(() => {
       onBrightnessChange(value);
@@ -40,7 +40,7 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     // Send final value immediately when user releases slider
     onBrightnessChange(value);
   };
@@ -61,10 +61,6 @@ export const BrightnessControl: React.FC<BrightnessControlProps> = ({
         maximumTrackTintColor="#001d3d"
         thumbStyle={styles.thumb}
       />
-      <View style={styles.sliderLabels}>
-        <Text style={styles.sliderLabel}>Dim</Text>
-        <Text style={styles.sliderLabel}>Bright</Text>
-      </View>
     </View>
   );
 };
@@ -76,7 +72,7 @@ const styles = StyleSheet.create({
   controlLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000814',
+    color: '#ffc300',
   },
   slider: {
     width: '100%',
@@ -95,7 +91,7 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontSize: 12,
-    color: '#000814',
+    color: '#ffc300',
     opacity: 0.7,
   },
 });
