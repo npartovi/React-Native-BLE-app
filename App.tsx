@@ -69,7 +69,8 @@ function App() {
       />
 
       <ScrollView style={styles.scrollView}>
-        <Header />
+        {/* Header - Only show when not connected */}
+        {!connectedDevice && <Header />}
 
         {/* Combined Bluetooth & Connection Status */}
         <BluetoothStatusCard

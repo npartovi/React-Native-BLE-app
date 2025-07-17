@@ -59,50 +59,54 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
     <Card>
       <SectionHeader 
         title="Matrix Eyes" 
-        subtitle="Control your LED matrix display"
         icon="👁️"
         color={theme.colors.matrix}
       />
 
-      {/* Eye Visualization */}
-      <EyeVisualization 
-        eyeColor={matrixEyeColor}
-        pupilColor={matrixPupilColor}
-      />
+      <View style={styles.mainContainer}>
+        {/* Eye Visualization */}
+        <EyeVisualization 
+          eyeColor={matrixEyeColor}
+          pupilColor={matrixPupilColor}
+        />
 
-      {/* Eye Color Selection */}
-      <View style={styles.colorSection}>
-        <Text style={styles.controlLabel}>Eye Color</Text>
-        <View style={styles.colorSwatches}>
-          {MATRIX_COLORS.map(color => (
-            <TouchableOpacity
-              key={color.id}
-              style={[
-                styles.colorSwatch,
-                { backgroundColor: color.color },
-                matrixEyeColor === color.id && styles.selectedSwatch,
-              ]}
-              onPress={() => onMatrixEyeColorChange(color.id)}
-            />
-          ))}
-        </View>
-      </View>
+        {/* Color Selection */}
+        <View style={styles.colorControls}>
+          {/* Eye Color Selection */}
+          <View style={styles.colorRow}>
+            <Text style={styles.colorLabel}>Eye</Text>
+            <View style={styles.colorOptions}>
+              {MATRIX_COLORS.map(color => (
+                <TouchableOpacity
+                  key={color.id}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: color.color },
+                    matrixEyeColor === color.id && styles.selectedSwatch,
+                  ]}
+                  onPress={() => onMatrixEyeColorChange(color.id)}
+                />
+              ))}
+            </View>
+          </View>
 
-      {/* Pupil Color Selection */}
-      <View style={styles.colorSection}>
-        <Text style={styles.controlLabel}>Pupil Color</Text>
-        <View style={styles.colorSwatches}>
-          {MATRIX_COLORS.map(color => (
-            <TouchableOpacity
-              key={color.id}
-              style={[
-                styles.colorSwatch,
-                { backgroundColor: color.color },
-                matrixPupilColor === color.id && styles.selectedSwatch,
-              ]}
-              onPress={() => onMatrixPupilColorChange(color.id)}
-            />
-          ))}
+          {/* Pupil Color Selection */}
+          <View style={styles.colorRow}>
+            <Text style={styles.colorLabel}>Pupil</Text>
+            <View style={styles.colorOptions}>
+              {MATRIX_COLORS.map(color => (
+                <TouchableOpacity
+                  key={color.id}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: color.color },
+                    matrixPupilColor === color.id && styles.selectedSwatch,
+                  ]}
+                  onPress={() => onMatrixPupilColorChange(color.id)}
+                />
+              ))}
+            </View>
+          </View>
         </View>
       </View>
     </Card>
@@ -110,56 +114,67 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   eyeContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: theme.spacing.xl,
-    gap: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    flex: 1,
   },
   eye: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: theme.colors.border,
-    ...theme.shadows.md,
+    ...theme.shadows.sm,
   },
   pupil: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.textInverse,
+  },
+  colorControls: {
+    flex: 1.2,
+    marginLeft: theme.spacing.md,
+  },
+  colorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  colorLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+    width: 40,
+    fontSize: 12,
+  },
+  colorOptions: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    flex: 1,
+  },
+  colorSwatch: {
     width: 30,
     height: 30,
     borderRadius: 15,
     borderWidth: 2,
-    borderColor: theme.colors.textInverse,
-  },
-  colorSection: {
-    marginBottom: theme.spacing.lg,
-  },
-  controlLabel: {
-    ...theme.typography.bodyBold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.md,
-    textAlign: 'center',
-  },
-  colorSwatches: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-  },
-  colorSwatch: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 3,
     borderColor: theme.colors.border,
     ...theme.shadows.sm,
   },
   selectedSwatch: {
     borderColor: theme.colors.textPrimary,
-    borderWidth: 4,
+    borderWidth: 3,
     transform: [{ scale: 1.1 }],
-    ...theme.shadows.lg,
   },
 });

@@ -72,19 +72,6 @@ export const AnimationPaletteSelector: React.FC<
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalContent}
         >
-          {/* Stop Button */}
-          {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
-            <View style={styles.effectContainer}>
-              <TouchableOpacity
-                style={[styles.effectButton, styles.stopButton]}
-                onPress={onStopAnimation}
-              >
-                <Text style={styles.effectIcon}>⏹️</Text>
-              </TouchableOpacity>
-              <Text style={styles.effectLabel}>Stop</Text>
-            </View>
-          )}
-
           {/* Solid Mode Button */}
           <View style={styles.effectContainer}>
             <TouchableOpacity
@@ -173,22 +160,17 @@ export const AnimationPaletteSelector: React.FC<
               <TouchableOpacity
                 key={colorOption.color}
                 style={[
-                  styles.colorButton,
-                  selectedColor === colorOption.color && styles.selectedColor,
+                  styles.paletteButton,
+                  selectedColor === colorOption.color && styles.selectedPalette,
                 ]}
                 onPress={() => onColorChange(colorOption.color)}
               >
-                <View
+                <View 
                   style={[
-                    styles.colorCircle,
-                    { backgroundColor: colorOption.color },
-                  ]}
-                >
-                  {selectedColor === colorOption.color && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
-                </View>
-                <Text style={styles.colorLabel}>{colorOption.name}</Text>
+                    styles.paletteCircle,
+                    { backgroundColor: colorOption.color }
+                  ]} 
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -283,10 +265,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     borderWidth: 3,
   },
-  stopButton: {
-    backgroundColor: theme.colors.error,
-    borderColor: theme.colors.error,
-  },
   effectIcon: {
     fontSize: 24,
     textAlign: 'center',
@@ -299,46 +277,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: theme.spacing.xs,
     maxWidth: 70,
-  },
-  
-  // Color Buttons
-  colorButton: {
-    alignItems: 'center',
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.md,
-    minWidth: 60,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  selectedColor: {
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-  },
-  colorCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.border,
-    marginBottom: theme.spacing.xs,
-    ...theme.shadows.sm,
-  },
-  colorLabel: {
-    ...theme.typography.caption,
-    color: theme.colors.textPrimary,
-    textAlign: 'center',
-    fontSize: 10,
-  },
-  checkmark: {
-    color: theme.colors.textPrimary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   
   // Palette Buttons

@@ -27,137 +27,126 @@ export const BluetoothStatusCard: React.FC<BluetoothStatusCardProps> = ({
   const getBluetoothStatusColor = () => {
     switch (bluetoothState) {
       case 'PoweredOn':
-        return '#ffd60a'; // Bright yellow for powered on
+        return '#00ff00'; // Green for powered on
       case 'PoweredOff':
-        return '#003566'; // Dark blue for powered off
+        return '#ff0000'; // Red for powered off
       default:
         return '#ffc300'; // Golden yellow for unknown
     }
   };
 
   const getConnectionStatusColor = () => {
-    return connectedDevice ? '#ffd60a' : '#003566';
+    return connectedDevice ? '#00ff00' : '#ff0000'; // Green for connected, red for disconnected
   };
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        📱 Device Status
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Device Status</Text>
+      </View>
       
-      {/* Bluetooth Status */}
       <View style={styles.statusRow}>
-        <Text style={styles.statusIcon}>{getBluetoothIcon()}</Text>
-        <View style={styles.statusInfo}>
-          <Text style={styles.statusLabel}>Bluetooth</Text>
-          <View style={styles.statusContainer}>
-            <View
-              style={[
-                styles.statusIndicator,
-                { backgroundColor: getBluetoothStatusColor() },
-              ]}
-            />
-            <Text style={styles.statusText}>
-              {bluetoothState || 'Unknown'}
-            </Text>
-          </View>
+        {/* Bluetooth Status */}
+        <View style={styles.statusItem}>
+          <Text style={styles.statusIcon}>{getBluetoothIcon()}</Text>
+          <View
+            style={[
+              styles.statusIndicator,
+              { backgroundColor: getBluetoothStatusColor() },
+            ]}
+          />
+          <Text style={styles.statusLabel}>BT</Text>
         </View>
-      </View>
 
-      {/* Connection Status */}
-      <View style={styles.statusRow}>
-        <Text style={styles.statusIcon}>🔗</Text>
-        <View style={styles.statusInfo}>
-          <Text style={styles.statusLabel}>Connection</Text>
-          <View style={styles.statusContainer}>
-            <View
-              style={[
-                styles.statusIndicator,
-                { backgroundColor: getConnectionStatusColor() },
-              ]}
-            />
-            <Text style={styles.statusText}>
-              {connectedDevice
-                ? `Connected to ${connectedDevice.name || 'ESP32'}`
-                : 'Not Connected'
-              }
-            </Text>
-          </View>
+        {/* Connection Status */}
+        <View style={styles.statusItem}>
+          <Text style={styles.statusIcon}>🔗</Text>
+          <View
+            style={[
+              styles.statusIndicator,
+              { backgroundColor: getConnectionStatusColor() },
+            ]}
+          />
+          <Text style={styles.statusLabel}>
+            {connectedDevice ? 'ESP32' : 'Off'}
+          </Text>
         </View>
-      </View>
 
-      {/* Disconnect Button */}
-      {connectedDevice && (
-        <TouchableOpacity
-          style={styles.disconnectButton}
-          onPress={onDisconnect}
-        >
-          <Text style={styles.buttonText}>Disconnect</Text>
-        </TouchableOpacity>
-      )}
+        {/* Disconnect Button */}
+        {connectedDevice && (
+          <TouchableOpacity
+            style={styles.disconnectButton}
+            onPress={onDisconnect}
+          >
+            <Text style={styles.disconnectText}>Disconnect</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 25,
-    padding: 15,
-    borderRadius: 12,
+    marginBottom: 15,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ffc300',
     backgroundColor: '#001d3d',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#ffd60a',
   },
   statusRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  statusIcon: {
-    fontSize: 24,
-    marginRight: 12,
-    width: 30,
-  },
-  statusInfo: {
-    flex: 1,
-  },
-  statusLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffc300',
-    marginBottom: 4,
-  },
-  statusContainer: {
+  statusItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 53, 102, 0.5)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 15,
+    flex: 0.3,
+    justifyContent: 'center',
+  },
+  statusIcon: {
+    fontSize: 16,
+    marginRight: 4,
   },
   statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
   },
-  statusText: {
-    fontSize: 14,
+  statusLabel: {
+    fontSize: 11,
     color: '#ffffff',
-    opacity: 0.9,
+    fontWeight: '500',
   },
   disconnectButton: {
-    backgroundColor: '#003566',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#ff4757',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+    flex: 0.35,
     alignItems: 'center',
-    marginTop: 10,
   },
-  buttonText: {
+  disconnectText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
   },
 });

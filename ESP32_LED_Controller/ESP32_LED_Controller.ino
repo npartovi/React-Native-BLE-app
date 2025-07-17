@@ -802,14 +802,25 @@ void updateAnimations() {
   }
   
   else if (currentAnimation == "pulse") {
-    if (currentTime - animationTimer > 30) { // Update every 30ms
-      uint8_t brightness = beatsin8(60, 50, 255); // 60 BPM pulse
+    if (currentTime - animationTimer > 20) { // Update every 20ms for smoother animation
+      uint8_t brightness = beatsin8(80, 10, 255); // 80 BPM pulse with larger range (10-255)
+      
+      // Use a single color for all LEDs to make the pulse effect more dramatic and obvious
+      CRGB pulseColor;
+      if (usePalette) {
+        pulseColor = getPaletteColor(animationStep); // Use palette color that changes slowly
+      } else {
+        pulseColor = animationColor; // Use selected animation color
+      }
+      
+      // Set ALL LEDs to the same color with pulsing brightness
       for (int i = 0; i < NUM_LEDS; i++) {
-        CRGB color = getPaletteColor(i * 8);
-        leds[i] = color;
+        leds[i] = pulseColor;
         leds[i].nscale8(brightness);
       }
+      
       FastLED.show();
+      animationStep += 1; // Slowly change palette color if using palette
       animationTimer = currentTime;
     }
   }
