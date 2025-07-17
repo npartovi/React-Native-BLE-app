@@ -74,39 +74,53 @@ export const AnimationPaletteSelector: React.FC<
         >
           {/* Stop Button */}
           {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
-            <TouchableOpacity
-              style={[styles.effectButton, styles.stopButton]}
-              onPress={onStopAnimation}
-            >
-              <Text style={styles.effectButtonText}>⏹️ Stop</Text>
-            </TouchableOpacity>
+            <View style={styles.effectContainer}>
+              <TouchableOpacity
+                style={[styles.effectButton, styles.stopButton]}
+                onPress={onStopAnimation}
+              >
+                <Text style={styles.effectIcon}>⏹️</Text>
+              </TouchableOpacity>
+              <Text style={styles.effectLabel}>Stop</Text>
+            </View>
           )}
 
           {/* Solid Mode Button */}
-          <TouchableOpacity
-            style={[
-              styles.effectButton,
-              activeAnimation === 'solid' && styles.selectedEffect,
-            ]}
-            onPress={onSolidMode}
-          >
-            <Text style={styles.effectButtonText}>🔘 Solid</Text>
-          </TouchableOpacity>
-
-          {/* Animation Buttons */}
-          {ANIMATIONS.map(animation => (
+          <View style={styles.effectContainer}>
             <TouchableOpacity
-              key={animation.id}
               style={[
                 styles.effectButton,
-                { backgroundColor: animation.color },
-                activeAnimation === animation.id && styles.selectedEffect,
+                activeAnimation === 'solid' && styles.selectedEffect,
               ]}
-              onPress={() => onAnimationSelect(animation.id)}
+              onPress={onSolidMode}
             >
-              <Text style={styles.effectButtonText}>{animation.name}</Text>
+              <Text style={styles.effectIcon}>🔘</Text>
             </TouchableOpacity>
-          ))}
+            <Text style={styles.effectLabel}>Solid</Text>
+          </View>
+
+          {/* Animation Buttons */}
+          {ANIMATIONS.map(animation => {
+            const iconMatch = animation.name.match(/^([^\s]+) /);
+            const icon = iconMatch ? iconMatch[1] : '✨';
+            const label = animation.name.replace(/^[^\s]+ /, '');
+            
+            return (
+              <View key={animation.id} style={styles.effectContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.effectButton,
+                    { backgroundColor: animation.color },
+                    activeAnimation === animation.id && styles.selectedEffect,
+                  ]}
+                  onPress={() => onAnimationSelect(animation.id)}
+                >
+                  <Text style={styles.effectIcon}>{icon}</Text>
+                </TouchableOpacity>
+                <Text style={styles.effectLabel}>{label}</Text>
+              </View>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -195,18 +209,24 @@ export const AnimationPaletteSelector: React.FC<
                 ]}
                 onPress={() => onPaletteSelect(palette.id)}
               >
-                <View style={styles.palettePreview}>
-                  {palette.colors.map((color, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.paletteSwatch,
-                        { backgroundColor: color },
-                      ]}
-                    />
-                  ))}
+                <View style={styles.paletteCircle}>
+                  {palette.colors.map((color, index) => {
+                    const stripeWidth = 50 / palette.colors.length;
+                    return (
+                      <View
+                        key={index}
+                        style={[
+                          styles.paletteStripe,
+                          {
+                            backgroundColor: color,
+                            width: stripeWidth,
+                            left: index * stripeWidth,
+                          },
+                        ]}
+                      />
+                    );
+                  })}
                 </View>
-                <Text style={styles.paletteLabel}>{palette.name}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -245,36 +265,40 @@ const styles = StyleSheet.create({
   },
   
   // Effect Buttons
+  effectContainer: {
+    alignItems: 'center',
+  },
   effectButton: {
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: 50, // Make circular
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    minWidth: 70,
-    minHeight: 70,
-    width: 70,
-    height: 70,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
     ...theme.shadows.sm,
   },
   selectedEffect: {
-    backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
+    borderWidth: 3,
   },
   stopButton: {
     backgroundColor: theme.colors.error,
     borderColor: theme.colors.error,
   },
-  effectButtonText: {
-    ...theme.typography.body,
+  effectIcon: {
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  effectLabel: {
+    ...theme.typography.caption,
     color: theme.colors.textPrimary,
     fontWeight: '600',
     fontSize: 10,
     textAlign: 'center',
-    lineHeight: 12,
+    marginTop: theme.spacing.xs,
+    maxWidth: 70,
   },
   
   // Color Buttons
@@ -320,33 +344,29 @@ const styles = StyleSheet.create({
   // Palette Buttons
   paletteButton: {
     alignItems: 'center',
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.md,
-    minWidth: 80,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
+    justifyContent: 'center',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
     borderColor: theme.colors.border,
+    ...theme.shadows.sm,
   },
   selectedPalette: {
     borderColor: theme.colors.primary,
-    borderWidth: 2,
+    borderWidth: 3,
   },
-  palettePreview: {
-    flexDirection: 'row',
-    borderRadius: theme.borderRadius.sm,
+  paletteCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     overflow: 'hidden',
-    marginBottom: theme.spacing.xs,
-    ...theme.shadows.sm,
+    position: 'relative',
   },
-  paletteSwatch: {
-    width: 12,
-    height: 20,
-  },
-  paletteLabel: {
-    ...theme.typography.caption,
-    color: theme.colors.textPrimary,
-    textAlign: 'center',
-    fontSize: 10,
+  paletteStripe: {
+    position: 'absolute',
+    height: 50,
+    top: 0,
   },
   
   // Random Controls
