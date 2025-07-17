@@ -225,23 +225,23 @@ const styles = StyleSheet.create({
     marginHorizontal: theme.spacing.sm,
   },
   effectsSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   palettesSection: {
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
   },
   sectionTitle: {
     ...theme.typography.subtitle,
     color: theme.colors.textPrimary,
     fontWeight: 'bold',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   horizontalScroll: {
     flexGrow: 0,
   },
   horizontalContent: {
     paddingHorizontal: theme.spacing.xs,
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   
   // Effect Buttons

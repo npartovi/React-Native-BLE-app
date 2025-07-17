@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   title: {
-    ...theme.typography.h3,
+    ...theme.typography.bodyBold,
     color: theme.colors.textPrimary,
   },
   subtitle: {

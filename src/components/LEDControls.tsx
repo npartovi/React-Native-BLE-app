@@ -169,9 +169,9 @@ const styles = StyleSheet.create({
   powerBrightnessRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: 2,
   },
   lightIcon: {
     fontSize: 24,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.textPrimary,
     textAlign: 'center',
-    marginBottom: theme.spacing.xs,
+    marginBottom: 2,
   },
   sliderWrapper: {
     flex: 1,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   brightnessSlider: {
     width: '100%',
-    height: 40,
+    height: 20,
   },
   sliderThumb: {
     width: 20,

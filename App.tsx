@@ -68,7 +68,11 @@ function App() {
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        scrollEnabled={false}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header - Only show when not connected */}
         {!connectedDevice && <Header />}
 
