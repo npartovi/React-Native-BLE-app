@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Card, SectionHeader } from './ui';
+import { SectionHeader } from './ui';
 import { theme } from '../styles/theme';
 
 interface MatrixControlsProps {
@@ -56,7 +56,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   onMatrixPupilColorChange,
 }) => {
   return (
-    <Card>
+    <View style={styles.container}>
       <SectionHeader 
         title="Matrix Eyes" 
         icon="👁️"
@@ -109,11 +109,15 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
           </View>
         </View>
       </View>
-    </Card>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginBottom: theme.spacing.lg,
+    marginHorizontal: theme.spacing.sm,
+  },
   mainContainer: {
     flexDirection: 'row',
     alignItems: 'center',

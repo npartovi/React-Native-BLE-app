@@ -4,7 +4,7 @@ import Slider from '@react-native-community/slider';
 import { AnimationPaletteSelector } from './AnimationPaletteSelector';
 import { MatrixControls } from './MatrixControls';
 import { CloudPreview } from './CloudPreview';
-import { Card, SectionHeader } from './ui';
+import { SectionHeader } from './ui';
 import { LEDContextType } from '../types';
 import { theme } from '../styles/theme';
 import { Device, State } from 'react-native-ble-plx';
@@ -65,7 +65,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
     return connectedDevice ? '#00ff00' : '#ff0000';
   };
   return (
-    <Card elevated style={styles.ledCard}>
+    <View style={styles.container}>
       {/* Device Status Section */}
       <View style={styles.deviceStatusRow}>
         {/* Bluetooth Status */}
@@ -117,8 +117,8 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
               maximumValue={255}
               value={brightness}
               onValueChange={handleBrightnessChange}
-              minimumTrackTintColor="#ffd60a"
-              maximumTrackTintColor="#003566"
+              minimumTrackTintColor={theme.colors.primary}
+              maximumTrackTintColor={theme.colors.border}
               thumbStyle={styles.sliderThumb}
             />
           </View>
@@ -157,14 +157,14 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
           />
         </>
       )}
-    </Card>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  ledCard: {
-    backgroundColor: '#001d3d',
-    borderColor: '#ffc300',
+  container: {
+    marginBottom: theme.spacing.lg,
+    marginHorizontal: theme.spacing.sm,
   },
   powerBrightnessRow: {
     flexDirection: 'row',
@@ -172,10 +172,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.md,
-    backgroundColor: 'rgba(0, 53, 102, 0.3)',
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 195, 0, 0.2)',
   },
   lightIcon: {
     fontSize: 24,
@@ -188,7 +184,7 @@ const styles = StyleSheet.create({
   brightnessValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#ffd60a',
+    color: theme.colors.textPrimary,
     textAlign: 'center',
     marginBottom: theme.spacing.xs,
   },
@@ -204,31 +200,31 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#ffd60a',
-    borderWidth: 2,
-    borderColor: '#ffc300',
+    backgroundColor: theme.colors.primary,
+    borderWidth: 1,
+    borderColor: theme.colors.primaryLight,
   },
   powerButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#003566',
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ffc300',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   powerButtonActive: {
-    backgroundColor: '#ffd60a',
+    backgroundColor: theme.colors.primary,
   },
   powerIcon: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#001d3d',
+    color: theme.colors.textPrimary,
   },
   controlLabel: {
     ...theme.typography.bodyBold,
-    color: '#ffc300',
+    color: theme.colors.textPrimary,
   },
   deviceStatusRow: {
     flexDirection: 'row',
@@ -237,15 +233,11 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.md,
-    backgroundColor: 'rgba(0, 53, 102, 0.3)',
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 195, 0, 0.2)',
   },
   statusItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 53, 102, 0.5)',
+    backgroundColor: theme.colors.surface,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 15,
@@ -264,7 +256,7 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 11,
-    color: '#ffffff',
+    color: theme.colors.textPrimary,
     fontWeight: '500',
   },
   disconnectButton: {
@@ -276,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   disconnectText: {
-    color: '#ffffff',
+    color: theme.colors.textInverse,
     fontSize: 11,
     fontWeight: '600',
   },

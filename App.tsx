@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   scrollView: {
-    padding: theme.spacing.md,
+    padding: theme.spacing.sm,
   },
 });
 

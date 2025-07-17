@@ -8,7 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 import { ANIMATIONS, COLOR_PALETTES, COLOR_OPTIONS } from '../constants';
-import { Card, SectionHeader, Button } from './ui';
+import { SectionHeader, Button } from './ui';
 import { CloudPreview } from './CloudPreview';
 import { theme } from '../styles/theme';
 
@@ -55,7 +55,7 @@ export const AnimationPaletteSelector: React.FC<
     activeAnimation !== 'random';
 
   return (
-    <Card>
+    <View style={styles.container}>
 
       {/* Effects Horizontal List - Above Cloud */}
       <View style={styles.effectsSection}>
@@ -215,11 +215,15 @@ export const AnimationPaletteSelector: React.FC<
           </View>
         )}
       </View>
-    </Card>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginBottom: theme.spacing.lg,
+    marginHorizontal: theme.spacing.sm,
+  },
   effectsSection: {
     marginBottom: theme.spacing.md,
   },
