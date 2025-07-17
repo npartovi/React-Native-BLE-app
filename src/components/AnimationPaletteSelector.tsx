@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { ANIMATIONS, COLOR_PALETTES, COLOR_OPTIONS } from '../constants';
 import { Card, SectionHeader, Button } from './ui';
+import { CloudPreview } from './CloudPreview';
 import { theme } from '../styles/theme';
 
 interface AnimationPaletteSelectorProps {
@@ -43,7 +44,8 @@ export const AnimationPaletteSelector: React.FC<
   onRandomIntervalChange,
 }) => {
   const [randomInterval, setRandomInterval] = useState('10');
-  // Determine what to show in right panel
+  
+  // Determine what to show
   const showColors = activeAnimation === 'solid';
   const showRandomControls = activeAnimation === 'random';
   const nonPaletteAnimations = ['rainbow', 'pride', 'fire'];
@@ -51,254 +53,169 @@ export const AnimationPaletteSelector: React.FC<
     !nonPaletteAnimations.includes(activeAnimation) &&
     activeAnimation !== 'solid' &&
     activeAnimation !== 'random';
-  const showEmptyPalettes = nonPaletteAnimations.includes(activeAnimation);
-  const showRightPanel = true; // Always show right panel
+
   return (
     <Card>
       <SectionHeader
-        title={
-          showRandomControls
-            ? 'Effects & Settings'
-            : showPalettes
-            ? 'Effects & Palettes'
-            : showColors
-            ? 'Effects & Colors'
-            : 'Effects & Palettes'
-        }
-        subtitle={
-          showRandomControls
-            ? 'Control random effect timing'
-            : showColors
-            ? 'Choose animation and color scheme'
-            : showEmptyPalettes
-            ? 'Choose your LED animation'
-            : 'Choose animation and color scheme'
-        }
+        title="LED Effects & Colors"
+        subtitle="Control your LED animations and colors"
         icon="✨"
         color={theme.colors.accent}
       />
 
-      <View style={styles.mainContainer}>
-        {/* Animations Column */}
-        <View
-          style={[styles.column, !showRightPanel && styles.fullWidthColumn]}
+      {/* Effects Horizontal List - Above Cloud */}
+      <View style={styles.effectsSection}>
+        <Text style={styles.sectionTitle}>🎬 Effects</Text>
+        <ScrollView
+          horizontal
+          style={styles.horizontalScroll}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalContent}
         >
-          <Text style={styles.columnTitle}>🎬 Effects</Text>
+          {/* Stop Button */}
+          {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
+            <TouchableOpacity
+              style={[styles.effectButton, styles.stopButton]}
+              onPress={onStopAnimation}
+            >
+              <Text style={styles.effectButtonText}>⏹️ Stop</Text>
+            </TouchableOpacity>
+          )}
 
-          <ScrollView
-            style={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
+          {/* Solid Mode Button */}
+          <TouchableOpacity
+            style={[
+              styles.effectButton,
+              activeAnimation === 'solid' && styles.selectedEffect,
+            ]}
+            onPress={onSolidMode}
           >
-            {/* Control Buttons */}
-            {activeAnimation !== 'none' && activeAnimation !== 'solid' && (
-              <View style={styles.controlButtons}>
-                <Button
-                  title="⏹️ Stop"
-                  onPress={onStopAnimation}
-                  variant="secondary"
-                  size="sm"
-                  style={styles.controlButton}
-                />
-              </View>
-            )}
+            <Text style={styles.effectButtonText}>🔘 Solid</Text>
+          </TouchableOpacity>
 
-            {/* Solid Mode Button */}
-            <Button
-              title="🔘 Solid"
-              onPress={onSolidMode}
-              variant="primary"
-              size="sm"
-              selected={activeAnimation === 'solid'}
-              style={styles.listButton}
-            />
+          {/* Animation Buttons */}
+          {ANIMATIONS.map(animation => (
+            <TouchableOpacity
+              key={animation.id}
+              style={[
+                styles.effectButton,
+                { backgroundColor: animation.color },
+                activeAnimation === animation.id && styles.selectedEffect,
+              ]}
+              onPress={() => onAnimationSelect(animation.id)}
+            >
+              <Text style={styles.effectButtonText}>{animation.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
-            {/* Animation List */}
-            {ANIMATIONS.map(animation => (
-              <Button
-                key={animation.id}
-                title={animation.name}
-                onPress={() => onAnimationSelect(animation.id)}
-                variant="secondary"
-                size="sm"
-                selected={activeAnimation === animation.id}
-                style={[
-                  styles.listButton,
-                  { backgroundColor: animation.color },
-                ]}
+      {/* Cloud Preview */}
+      <CloudPreview />
+
+      {/* Palettes/Colors Horizontal List - Below Cloud */}
+      <View style={styles.palettesSection}>
+        <Text style={styles.sectionTitle}>
+          {showRandomControls
+            ? '⚙️ Settings'
+            : showColors
+            ? '🎨 Colors'
+            : '🎨 Palettes'}
+        </Text>
+        
+        {showRandomControls ? (
+          /* Random Controls */
+          <View style={styles.randomControls}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Interval:</Text>
+              <TextInput
+                style={styles.timeInput}
+                value={randomInterval}
+                onChangeText={setRandomInterval}
+                onBlur={() => {
+                  const seconds = parseInt(randomInterval) || 10;
+                  const validSeconds = Math.max(1, Math.min(300, seconds));
+                  setRandomInterval(validSeconds.toString());
+                  if (onRandomIntervalChange) {
+                    onRandomIntervalChange(validSeconds);
+                  }
+                }}
+                keyboardType="numeric"
+                placeholder="10"
+                maxLength={3}
               />
-            ))}
-
-            {/* Color Cycle Toggle */}
-            {activeAnimation !== 'none' &&
-              activeAnimation !== 'solid' &&
-              !['rainbow', 'pride', 'plasma'].includes(activeAnimation) && (
-                <View style={styles.cycleSection}>
-                  <Button
-                    title={`🌈 Color Cycle ${colorCycleMode ? 'ON' : 'OFF'}`}
-                    onPress={onToggleColorCycle}
-                    variant="accent"
-                    size="sm"
-                    selected={colorCycleMode}
-                    style={styles.listButton}
-                  />
-                  {colorCycleMode && (
-                    <Text style={styles.cycleInfo}>
-                      ⏱️ Auto-change every 10s
-                    </Text>
+              <Text style={styles.timeLabel}>seconds</Text>
+            </View>
+          </View>
+        ) : showColors ? (
+          /* Colors Horizontal List */
+          <ScrollView
+            horizontal
+            style={styles.horizontalScroll}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalContent}
+          >
+            {COLOR_OPTIONS.map(colorOption => (
+              <TouchableOpacity
+                key={colorOption.color}
+                style={[
+                  styles.colorButton,
+                  selectedColor === colorOption.color && styles.selectedColor,
+                ]}
+                onPress={() => onColorChange(colorOption.color)}
+              >
+                <View
+                  style={[
+                    styles.colorCircle,
+                    { backgroundColor: colorOption.color },
+                  ]}
+                >
+                  {selectedColor === colorOption.color && (
+                    <Text style={styles.checkmark}>✓</Text>
                   )}
                 </View>
-              )}
+                <Text style={styles.colorLabel}>{colorOption.name}</Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
-        </View>
-
-        {/* Separator - Only show when right panel is visible */}
-        {showRightPanel && <View style={styles.separator} />}
-
-        {/* Right Panel - Show palettes or colors based on selection */}
-        {showRightPanel && (
-          <View style={styles.column}>
-            <Text style={styles.columnTitle}>
-              {showRandomControls
-                ? '⚙️ Settings'
-                : showPalettes
-                ? '🎨 Palettes'
-                : '🎨 Colors'}
-            </Text>
-
-            <ScrollView
-              style={styles.scrollContainer}
-              showsVerticalScrollIndicator={false}
-            >
-              {showRandomControls ? (
-                /* Random Effect Controls */
-                <View style={styles.randomControls}>
-                  <Text style={styles.randomTitle}>🎲 Random Interval</Text>
-                  <Text style={styles.randomDescription}>
-                    Set how often random changes occur
-                  </Text>
-
-                  <View style={styles.inputContainer}>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={randomInterval}
-                      onChangeText={setRandomInterval}
-                      onBlur={() => {
-                        const seconds = parseInt(randomInterval) || 10;
-                        const validSeconds = Math.max(
-                          1,
-                          Math.min(300, seconds),
-                        );
-                        setRandomInterval(validSeconds.toString());
-                        if (onRandomIntervalChange) {
-                          onRandomIntervalChange(validSeconds);
-                        }
-                      }}
-                      keyboardType="numeric"
-                      placeholder="10"
-                      maxLength={3}
-                    />
-                    <Text style={styles.timeLabel}>seconds</Text>
-                  </View>
-
-                  <Text style={styles.randomHint}>💡 Range: 1-300 seconds</Text>
-
-                  <View style={styles.quickButtons}>
-                    <Text style={styles.quickTitle}>Quick Select:</Text>
-                    {[5, 10, 15, 30, 60].map(seconds => (
-                      <TouchableOpacity
-                        key={seconds}
-                        style={[
-                          styles.quickButton,
-                          randomInterval === seconds.toString() &&
-                            styles.quickButtonSelected,
-                        ]}
-                        onPress={() => {
-                          setRandomInterval(seconds.toString());
-                          if (onRandomIntervalChange) {
-                            onRandomIntervalChange(seconds);
-                          }
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.quickButtonText,
-                            randomInterval === seconds.toString() &&
-                              styles.quickButtonTextSelected,
-                          ]}
-                        >
-                          {seconds}s
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              ) : showColors ? (
-                /* Color Selection for Solid Mode */
-                <View style={styles.colorList}>
-                  {COLOR_OPTIONS.map(colorOption => (
-                    <TouchableOpacity
-                      key={colorOption.color}
+        ) : showPalettes ? (
+          /* Palettes Horizontal List */
+          <ScrollView
+            horizontal
+            style={styles.horizontalScroll}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalContent}
+          >
+            {COLOR_PALETTES.map(palette => (
+              <TouchableOpacity
+                key={palette.id}
+                style={[
+                  styles.paletteButton,
+                  selectedPalette === palette.id && styles.selectedPalette,
+                ]}
+                onPress={() => onPaletteSelect(palette.id)}
+              >
+                <View style={styles.palettePreview}>
+                  {palette.colors.map((color, index) => (
+                    <View
+                      key={index}
                       style={[
-                        styles.colorItem,
-                        selectedColor === colorOption.color &&
-                          styles.selectedColorItem,
+                        styles.paletteSwatch,
+                        { backgroundColor: color },
                       ]}
-                      onPress={() => onColorChange(colorOption.color)}
-                    >
-                      <View
-                        style={[
-                          styles.colorCircle,
-                          { backgroundColor: colorOption.color },
-                        ]}
-                      >
-                        {selectedColor === colorOption.color && (
-                          <Text style={styles.checkmark}>✓</Text>
-                        )}
-                      </View>
-                      <Text style={styles.colorName}>{colorOption.name}</Text>
-                    </TouchableOpacity>
+                    />
                   ))}
                 </View>
-              ) : showPalettes ? (
-                <>
-                  {/* Palette List */}
-                  {COLOR_PALETTES.map(palette => (
-                    <View key={palette.id} style={styles.paletteItem}>
-                      <Button
-                        title={palette.name}
-                        onPress={() => onPaletteSelect(palette.id)}
-                        variant="secondary"
-                        size="sm"
-                        selected={selectedPalette === palette.id}
-                        style={styles.listButton}
-                      />
-
-                      {/* Color preview */}
-                      <View style={styles.colorPreview}>
-                        {palette.colors.map((color, index) => (
-                          <View
-                            key={index}
-                            style={[
-                              styles.colorSwatch,
-                              { backgroundColor: color },
-                            ]}
-                          />
-                        ))}
-                      </View>
-                    </View>
-                  ))}
-                </>
-              ) : (
-                /* Empty State for Non-Palette Animations */
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateTitle}>🌈 Built-in Colors</Text>
-                  <Text style={styles.emptyStateText}>
-                    This effect uses its own beautiful color scheme and doesn't
-                    support custom palettes.
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
+                <Text style={styles.paletteLabel}>{palette.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : (
+          /* Empty State */
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              This effect uses built-in colors
+            </Text>
           </View>
         )}
       </View>
@@ -307,101 +224,89 @@ export const AnimationPaletteSelector: React.FC<
 };
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flexDirection: 'row',
-    height: 350, // Fixed height to prevent scrolling
-    marginTop: theme.spacing.sm,
+  effectsSection: {
+    marginBottom: theme.spacing.md,
   },
-  column: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.xs,
+  palettesSection: {
+    marginTop: theme.spacing.md,
   },
-  fullWidthColumn: {
-    paddingHorizontal: theme.spacing.md,
-  },
-  columnTitle: {
+  sectionTitle: {
     ...theme.typography.subtitle,
     color: theme.colors.textPrimary,
     fontWeight: 'bold',
     marginBottom: theme.spacing.sm,
-    textAlign: 'center',
   },
-  separator: {
-    width: 1,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.sm,
+  horizontalScroll: {
+    flexGrow: 0,
   },
-  scrollContainer: {
-    flex: 1,
+  horizontalContent: {
+    paddingHorizontal: theme.spacing.xs,
+    gap: theme.spacing.sm,
   },
-  controlButtons: {
-    marginBottom: theme.spacing.md,
-  },
-  listButton: {
-    marginBottom: theme.spacing.xs,
-    width: '100%',
-  },
-  paletteItem: {
-    marginBottom: theme.spacing.md,
-  },
-  colorPreview: {
-    flexDirection: 'row',
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-    overflow: 'hidden',
+  
+  // Effect Buttons
+  effectButton: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 50, // Make circular
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    minWidth: 70,
+    minHeight: 70,
+    width: 70,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...theme.shadows.sm,
   },
-  colorSwatch: {
-    flex: 1,
-    height: 12,
+  selectedEffect: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
-  paletteDescription: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
+  stopButton: {
+    backgroundColor: theme.colors.error,
+    borderColor: theme.colors.error,
+  },
+  effectButtonText: {
+    ...theme.typography.body,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
     fontSize: 10,
-  },
-  cycleSection: {
-    marginTop: theme.spacing.md,
-  },
-  cycleInfo: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginTop: theme.spacing.xs,
-    fontSize: 10,
-    fontStyle: 'italic',
+    lineHeight: 12,
   },
-  colorList: {
-    marginTop: theme.spacing.sm,
-  },
-  colorItem: {
-    flexDirection: 'row',
+  
+  // Color Buttons
+  colorButton: {
     alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-    marginBottom: theme.spacing.xs,
-  },
-  selectedColorItem: {
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    minWidth: 60,
     backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  selectedColor: {
+    borderColor: theme.colors.primary,
+    borderWidth: 2,
   },
   colorCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: theme.spacing.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.border,
+    marginBottom: theme.spacing.xs,
     ...theme.shadows.sm,
   },
-  colorName: {
-    ...theme.typography.body,
+  colorLabel: {
+    ...theme.typography.caption,
     color: theme.colors.textPrimary,
-    flex: 1,
+    textAlign: 'center',
+    fontSize: 10,
   },
   checkmark: {
     color: theme.colors.textPrimary,
@@ -411,44 +316,53 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+  
+  // Palette Buttons
+  paletteButton: {
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xl,
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    minWidth: 80,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  emptyStateTitle: {
-    ...theme.typography.subtitle,
-    color: theme.colors.textPrimary,
-    fontWeight: 'bold',
-    marginBottom: theme.spacing.sm,
-    textAlign: 'center',
+  selectedPalette: {
+    borderColor: theme.colors.primary,
+    borderWidth: 2,
   },
-  emptyStateText: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  randomControls: {
-    padding: theme.spacing.md,
-  },
-  randomTitle: {
-    ...theme.typography.subtitle,
-    color: theme.colors.textPrimary,
-    fontWeight: 'bold',
+  palettePreview: {
+    flexDirection: 'row',
+    borderRadius: theme.borderRadius.sm,
+    overflow: 'hidden',
     marginBottom: theme.spacing.xs,
+    ...theme.shadows.sm,
   },
-  randomDescription: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.lg,
+  paletteSwatch: {
+    width: 12,
+    height: 20,
+  },
+  paletteLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+    fontSize: 10,
+  },
+  
+  // Random Controls
+  randomControls: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  inputLabel: {
+    ...theme.typography.body,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
   },
   timeInput: {
     ...theme.typography.body,
@@ -459,7 +373,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-    marginRight: theme.spacing.sm,
     minWidth: 60,
     textAlign: 'center',
   },
@@ -467,43 +380,16 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.textSecondary,
   },
-  randomHint: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
-    fontStyle: 'italic',
-    marginBottom: theme.spacing.lg,
-  },
-  quickButtons: {
-    marginTop: theme.spacing.md,
-  },
-  quickTitle: {
-    ...theme.typography.body,
-    color: theme.colors.textPrimary,
-    fontWeight: '600',
-    marginBottom: theme.spacing.sm,
-  },
-  quickButton: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.sm,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    marginRight: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
-    minWidth: 50,
+  
+  // Empty State
+  emptyState: {
     alignItems: 'center',
+    paddingVertical: theme.spacing.lg,
   },
-  quickButtonSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  quickButtonText: {
+  emptyStateText: {
     ...theme.typography.body,
-    color: theme.colors.textPrimary,
-    fontWeight: '600',
-  },
-  quickButtonTextSelected: {
-    color: theme.colors.background,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

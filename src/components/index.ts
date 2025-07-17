@@ -10,6 +10,7 @@ export { ColorControls } from './ColorControls';
 export { MatrixControls } from './MatrixControls';
 export { PaletteControls } from './PaletteControls';
 export { LaunchScreen } from './LaunchScreen';
+export { CloudPreview } from './CloudPreview';
 
 // UI Components
 export * from './ui';

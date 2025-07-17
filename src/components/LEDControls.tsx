@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { AnimationPaletteSelector } from './AnimationPaletteSelector';
 import { MatrixControls } from './MatrixControls';
+import { CloudPreview } from './CloudPreview';
 import { Card, SectionHeader } from './ui';
 import { LEDContextType } from '../types';
 import { theme } from '../styles/theme';
@@ -70,7 +71,6 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
 
       {ledPower && (
         <>
-
           <AnimationPaletteSelector
             activeAnimation={activeAnimation}
             selectedPalette={selectedPalette}
