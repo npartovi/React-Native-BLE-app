@@ -161,6 +161,9 @@ uint16_t sHue16 = 0;
 bool matrixEnabled = false;
 uint8_t matrixEyeColor = LED_GREEN;
 uint8_t matrixPupilColor = LED_RED;
+bool matrixHeartMode = false;
+uint8_t matrixHeartColor1 = LED_RED;
+uint8_t matrixHeartColor2 = LED_YELLOW;
 
 // Eye animation data
 const uint8_t PROGMEM blinkImg[][8] = {
@@ -215,6 +218,67 @@ int8_t eyeX = 3, eyeY = 3;
 int8_t newX = 3, newY = 3;
 int8_t dX = 0, dY = 0;
 
+// Heart animation data - positioned at bottom of 8x8 grid
+const uint8_t PROGMEM heartImg[][8] = {
+  { B00000000,         // Frame 1 - Small heart
+    B00000000,
+    B01100110,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 },
+  { B00000000,         // Frame 2 - Medium heart
+    B01100110,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 },
+  { B01100110,         // Frame 3 - Large heart
+    B11111111,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 }
+};
+
+// Heart outline data for dual color effect - positioned at bottom
+const uint8_t PROGMEM heartOutline[][8] = {
+  { B00000000,         // Frame 1 - Small outline
+    B00000000,
+    B01100110,
+    B10000001,
+    B10000001,
+    B01000010,
+    B00100100,
+    B00011000 },
+  { B00000000,         // Frame 2 - Medium outline
+    B01100110,
+    B10000001,
+    B10000001,
+    B10000001,
+    B01000010,
+    B00100100,
+    B00011000 },
+  { B01100110,         // Frame 3 - Large outline
+    B10000001,
+    B10000001,
+    B10000001,
+    B10000001,
+    B01000010,
+    B00100100,
+    B00011000 }
+};
+
+// Heart animation variables
+uint8_t heartAnimationStep = 0;
+unsigned long heartAnimationTimer = 0;
+bool heartExpanding = true;
+
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
@@ -235,6 +299,7 @@ void processMatrixCommand(String command);
 void setPalette(int paletteIndex);
 CRGB getPaletteColor(uint8_t index);
 void setupRandomColorMode(String animation);
+void heartAnimation();
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -1266,6 +1331,43 @@ void processMatrixCommand(String command) {
     matrixPupilColor = LED_RED;
     Serial.println("Matrix pupil color: Red");
   }
+  // Handle heart mode commands
+  else if (command == "MATRIX_HEART_ON") {
+    matrixHeartMode = true;
+    heartAnimationStep = 0;
+    heartAnimationTimer = millis();
+    heartExpanding = true;
+    Serial.println("Matrix heart mode: ON");
+  }
+  else if (command == "MATRIX_HEART_OFF") {
+    matrixHeartMode = false;
+    Serial.println("Matrix heart mode: OFF");
+  }
+  // Handle heart color commands
+  else if (command == "MATRIX_HEART1_GREEN") {
+    matrixHeartColor1 = LED_GREEN;
+    Serial.println("Matrix heart color 1: Green");
+  }
+  else if (command == "MATRIX_HEART1_YELLOW") {
+    matrixHeartColor1 = LED_YELLOW;
+    Serial.println("Matrix heart color 1: Yellow");
+  }
+  else if (command == "MATRIX_HEART1_RED") {
+    matrixHeartColor1 = LED_RED;
+    Serial.println("Matrix heart color 1: Red");
+  }
+  else if (command == "MATRIX_HEART2_GREEN") {
+    matrixHeartColor2 = LED_GREEN;
+    Serial.println("Matrix heart color 2: Green");
+  }
+  else if (command == "MATRIX_HEART2_YELLOW") {
+    matrixHeartColor2 = LED_YELLOW;
+    Serial.println("Matrix heart color 2: Yellow");
+  }
+  else if (command == "MATRIX_HEART2_RED") {
+    matrixHeartColor2 = LED_RED;
+    Serial.println("Matrix heart color 2: Red");
+  }
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -1279,8 +1381,16 @@ void updateMatrixAnimation() {
   if (!matrixEnabled) return;
   
   matrix.clear();
-  blinkingAnimation();
-  gazingAnimation();
+  
+  if (matrixHeartMode) {
+    // Display heart animation
+    heartAnimation();
+  } else {
+    // Display eye animation
+    blinkingAnimation();
+    gazingAnimation();
+  }
+  
   matrix.writeDisplay();
 }
 
@@ -1432,5 +1542,34 @@ void setupRandomColorMode(String animation) {
     // These animations ignore palettes anyway, just set a random color for consistency
     randomAnimationColor = CRGB(random(256), random(256), random(256));
     Serial.printf("Random mode: Non-palette animation %s, color set for consistency\n", animation.c_str());
+  }
+}
+
+void heartAnimation() {
+  unsigned long currentTime = millis();
+  
+  // Update animation every 300ms for heartbeat rhythm
+  if (currentTime - heartAnimationTimer > 300) {
+    if (heartExpanding) {
+      heartAnimationStep++;
+      if (heartAnimationStep >= 2) {
+        heartExpanding = false;
+      }
+    } else {
+      heartAnimationStep--;
+      if (heartAnimationStep == 0) {
+        heartExpanding = true;
+      }
+    }
+    heartAnimationTimer = currentTime;
+  }
+  
+  // Draw dual-color heart effect
+  // First draw the filled heart with color 1
+  matrix.drawBitmap(0, 0, heartImg[heartAnimationStep], 8, 8, matrixHeartColor1);
+  
+  // Then draw the outline with color 2 (if different from color 1)
+  if (matrixHeartColor1 != matrixHeartColor2) {
+    matrix.drawBitmap(0, 0, heartOutline[heartAnimationStep], 8, 8, matrixHeartColor2);
   }
 }

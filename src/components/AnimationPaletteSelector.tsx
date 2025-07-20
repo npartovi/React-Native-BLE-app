@@ -44,7 +44,7 @@ export const AnimationPaletteSelector: React.FC<
   onRandomIntervalChange,
 }) => {
   const [randomInterval, setRandomInterval] = useState('10');
-  
+
   // Determine what to show
   const showColors = activeAnimation === 'solid';
   const showRandomControls = activeAnimation === 'random';
@@ -56,7 +56,6 @@ export const AnimationPaletteSelector: React.FC<
 
   return (
     <View style={styles.container}>
-
       {/* Effects Horizontal List - Above Cloud */}
       <View style={styles.effectsSection}>
         <Text style={styles.sectionTitle}>🎬 Effects</Text>
@@ -85,7 +84,7 @@ export const AnimationPaletteSelector: React.FC<
             const iconMatch = animation.name.match(/^([^\s]+) /);
             const icon = iconMatch ? iconMatch[1] : '✨';
             const label = animation.name.replace(/^[^\s]+ /, '');
-            
+
             return (
               <View key={animation.id} style={styles.effectContainer}>
                 <TouchableOpacity
@@ -106,7 +105,7 @@ export const AnimationPaletteSelector: React.FC<
       </View>
 
       {/* Cloud Preview */}
-      <CloudPreview />
+      {/* <CloudPreview /> */}
 
       {/* Palettes/Colors Horizontal List - Below Cloud */}
       <View style={styles.palettesSection}>
@@ -117,7 +116,7 @@ export const AnimationPaletteSelector: React.FC<
             ? '🎨 Colors'
             : '🎨 Palettes'}
         </Text>
-        
+
         {showRandomControls ? (
           /* Random Controls */
           <View style={styles.randomControls}>
@@ -159,11 +158,11 @@ export const AnimationPaletteSelector: React.FC<
                 ]}
                 onPress={() => onColorChange(colorOption.color)}
               >
-                <View 
+                <View
                   style={[
                     styles.paletteCircle,
-                    { backgroundColor: colorOption.color }
-                  ]} 
+                    { backgroundColor: colorOption.color },
+                  ]}
                 />
               </TouchableOpacity>
             ))}
@@ -243,7 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xs,
     gap: theme.spacing.xs,
   },
-  
+
   // Effect Buttons
   effectContainer: {
     alignItems: 'center',
@@ -276,7 +275,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     maxWidth: 70,
   },
-  
+
   // Palette Buttons
   paletteButton: {
     alignItems: 'center',
@@ -304,7 +303,7 @@ const styles = StyleSheet.create({
     height: 50,
     top: 0,
   },
-  
+
   // Random Controls
   randomControls: {
     alignItems: 'center',
@@ -336,7 +335,7 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.textSecondary,
   },
-  
+
   // Empty State
   emptyState: {
     alignItems: 'center',

@@ -105,6 +105,9 @@ function App() {
             colorCycleMode={ledControl.colorCycleMode}
             matrixEyeColor={ledControl.matrixEyeColor}
             matrixPupilColor={ledControl.matrixPupilColor}
+            matrixHeartMode={ledControl.matrixHeartMode}
+            matrixHeartColor1={ledControl.matrixHeartColor1}
+            matrixHeartColor2={ledControl.matrixHeartColor2}
             selectedPalette={ledControl.selectedPalette}
             toggleLED={ledControl.toggleLED}
             handleColorChange={ledControl.handleColorChange}
@@ -115,6 +118,9 @@ function App() {
             toggleColorCycle={ledControl.toggleColorCycle}
             handleMatrixEyeColorChange={ledControl.handleMatrixEyeColorChange}
             handleMatrixPupilColorChange={ledControl.handleMatrixPupilColorChange}
+            handleMatrixHeartModeToggle={ledControl.handleMatrixHeartModeToggle}
+            handleMatrixHeartColor1Change={ledControl.handleMatrixHeartColor1Change}
+            handleMatrixHeartColor2Change={ledControl.handleMatrixHeartColor2Change}
             handlePaletteSelect={ledControl.handlePaletteSelect}
             handlePaletteDisable={ledControl.handlePaletteDisable}
             handleRandomIntervalChange={ledControl.handleRandomIntervalChange}

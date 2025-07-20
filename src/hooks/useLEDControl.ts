@@ -15,6 +15,9 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [colorCycleMode, setColorCycleMode] = useState(false);
   const [matrixEyeColor, setMatrixEyeColor] = useState('GREEN');
   const [matrixPupilColor, setMatrixPupilColor] = useState('RED');
+  const [matrixHeartMode, setMatrixHeartMode] = useState(false);
+  const [matrixHeartColor1, setMatrixHeartColor1] = useState('RED');
+  const [matrixHeartColor2, setMatrixHeartColor2] = useState('YELLOW');
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
 
   // Handle state updates from ESP32
@@ -196,12 +199,43 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   };
 
+  const handleMatrixHeartModeToggle = async () => {
+    const newHeartMode = !matrixHeartMode;
+    setMatrixHeartMode(newHeartMode);
+
+    if (ledPower) {
+      const command = newHeartMode ? 'MATRIX_HEART_ON' : 'MATRIX_HEART_OFF';
+      await sendBLECommand(command);
+    }
+  };
+
+  const handleMatrixHeartColor1Change = async (color: string) => {
+    setMatrixHeartColor1(color);
+
+    if (ledPower) {
+      const command = `MATRIX_HEART1_${color}`;
+      await sendBLECommand(command);
+    }
+  };
+
+  const handleMatrixHeartColor2Change = async (color: string) => {
+    setMatrixHeartColor2(color);
+
+    if (ledPower) {
+      const command = `MATRIX_HEART2_${color}`;
+      await sendBLECommand(command);
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
     setColorCycleMode(false);
     setSelectedPalette(null);
     setActiveAnimation('none');
+    setMatrixHeartMode(false);
+    setMatrixHeartColor1('RED');
+    setMatrixHeartColor2('YELLOW');
   };
 
   // Set default state when connecting for the first time
@@ -221,6 +255,9 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     colorCycleMode,
     matrixEyeColor,
     matrixPupilColor,
+    matrixHeartMode,
+    matrixHeartColor1,
+    matrixHeartColor2,
     selectedPalette,
     toggleLED,
     handleColorChange,
@@ -231,6 +268,9 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     toggleColorCycle,
     handleMatrixEyeColorChange,
     handleMatrixPupilColorChange,
+    handleMatrixHeartModeToggle,
+    handleMatrixHeartColor1Change,
+    handleMatrixHeartColor2Change,
     handlePaletteSelect,
     handlePaletteDisable,
     handleRandomIntervalChange,
