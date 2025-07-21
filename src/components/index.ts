@@ -11,6 +11,7 @@ export { MatrixControls } from './MatrixControls';
 export { PaletteControls } from './PaletteControls';
 export { LaunchScreen } from './LaunchScreen';
 export { CloudPreview } from './CloudPreview';
+export { CloudManager } from './CloudManager';
 
 // UI Components
 export * from './ui';

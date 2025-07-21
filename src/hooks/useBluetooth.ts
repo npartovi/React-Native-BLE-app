@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert, Platform, PermissionsAndroid } from 'react-native';
 import { BleManager, Device, State } from 'react-native-ble-plx';
 import { SERVICE_UUID, CHARACTERISTIC_UUID } from '../constants';
+import { ConnectedCloud } from '../types';
 
 export const useBluetooth = () => {
   const [bleManager] = useState(() => {
@@ -9,10 +10,27 @@ export const useBluetooth = () => {
     return new BleManager();
   });
   const [bluetoothState, setBluetoothState] = useState<State | null>(null);
-  const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [connectedClouds, setConnectedClouds] = useState<ConnectedCloud[]>([]);
+  const [activeCloudId, setActiveCloudId] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<Device[]>([]);
   const stateUpdateCallbackRef = useRef<((message: string) => void) | null>(null);
+
+  // Helper to get default LED state for new clouds
+  const getDefaultLEDState = () => ({
+    ledPower: false,
+    selectedColor: '#FF0000',
+    brightness: 84,
+    activeAnimation: 'none',
+    colorCycleMode: false,
+    matrixEyeColor: 'GREEN',
+    matrixPupilColor: 'RED',
+    matrixHeartMode: false,
+    matrixVisualizerMode: false,
+    matrixHeartColor1: 'RED',
+    matrixHeartColor2: 'YELLOW',
+    selectedPalette: null,
+  });
 
   useEffect(() => {
     // Check if BLE is supported first
@@ -123,14 +141,14 @@ export const useBluetooth = () => {
             device.id,
           );
 
-          // Look for ESP32 devices or devices with our service
+          // Look for Electric Dream devices or devices with our service
           if (
-            device.name?.includes('ESP32') ||
-            device.localName?.includes('ESP32') ||
+            device.name?.includes('Electric Dream') ||
+            device.localName?.includes('Electric Dream') ||
             device.serviceUUIDs?.includes(SERVICE_UUID)
           ) {
             console.log(
-              'ESP32 device found:',
+              'Electric Dream device found:',
               device.name || device.localName,
               device.id,
             );
@@ -184,13 +202,30 @@ export const useBluetooth = () => {
       bleManager.stopDeviceScan();
       setIsScanning(false);
 
-      const connectedDevice = await device.connect();
-      setConnectedDevice(connectedDevice);
+      // Check if device is already connected
+      const existingCloud = connectedClouds.find(cloud => cloud.device.id === device.id);
+      if (existingCloud) {
+        setActiveCloudId(existingCloud.id);
+        Alert.alert('Already Connected', `Switched to ${existingCloud.name}`);
+        return;
+      }
 
+      const connectedDevice = await device.connect();
       await connectedDevice.discoverAllServicesAndCharacteristics();
 
-      // Set up notification listener for state updates
-      console.log('Setting up notification listener...');
+      // Create new cloud entry
+      const cloudName = device.name || device.localName || `Cloud ${connectedClouds.length + 1}`;
+      const newCloud: ConnectedCloud = {
+        id: device.id,
+        name: cloudName,
+        device: connectedDevice,
+        isConnected: true,
+        lastConnected: new Date(),
+        ledState: getDefaultLEDState(),
+      };
+
+      // Set up notification listener for this specific cloud
+      console.log(`Setting up notification listener for ${cloudName}...`);
       connectedDevice.monitorCharacteristicForService(
         SERVICE_UUID,
         CHARACTERISTIC_UUID,
@@ -202,22 +237,25 @@ export const useBluetooth = () => {
 
           if (characteristic?.value) {
             const message = atob(characteristic.value);
-            console.log('Received BLE notification:', message);
+            console.log(`Received BLE notification from ${cloudName}:`, message);
             
-            if (stateUpdateCallbackRef.current) {
+            // Only process notifications if this is the active cloud
+            if (activeCloudId === device.id && stateUpdateCallbackRef.current) {
               console.log('Calling state update callback with:', message);
               stateUpdateCallbackRef.current(message);
-            } else {
-              console.log('No state update callback set yet');
             }
           }
         }
       );
 
+      // Add cloud to connected clouds and set as active
+      setConnectedClouds(prev => [...prev, newCloud]);
+      setActiveCloudId(device.id);
+
       // Request current state after setting up notifications
       setTimeout(async () => {
         try {
-          console.log('Requesting current state from ESP32...');
+          console.log(`Requesting current state from ${cloudName}...`);
           const base64Command = btoa('GET_STATE');
           await connectedDevice.writeCharacteristicWithoutResponseForService(
             SERVICE_UUID,
@@ -229,42 +267,63 @@ export const useBluetooth = () => {
         }
       }, 1000);
 
-      Alert.alert('Success', `Connected to ${device.name || 'ESP32 Device'}`);
+      Alert.alert('Success', `Connected to ${cloudName}`);
     } catch (error) {
       console.log('Connection error:', error);
       Alert.alert('Connection Failed', 'Could not connect to device');
     }
   };
 
-  const disconnectDevice = async () => {
-    if (connectedDevice) {
+  const disconnectDevice = async (cloudId: string) => {
+    const cloud = connectedClouds.find(c => c.id === cloudId);
+    if (cloud) {
       try {
-        await connectedDevice.cancelConnection();
-        setConnectedDevice(null);
-        Alert.alert('Disconnected', 'Device disconnected successfully');
+        await cloud.device.cancelConnection();
+        
+        // Remove from connected clouds
+        setConnectedClouds(prev => prev.filter(c => c.id !== cloudId));
+        
+        // If this was the active cloud, switch to another or set to null
+        if (activeCloudId === cloudId) {
+          const remainingClouds = connectedClouds.filter(c => c.id !== cloudId);
+          setActiveCloudId(remainingClouds.length > 0 ? remainingClouds[0].id : null);
+        }
+        
+        Alert.alert('Disconnected', `${cloud.name} disconnected successfully`);
       } catch (error) {
         console.log('Disconnect error:', error);
       }
     }
   };
 
-  const sendBLECommand = async (command: string) => {
-    if (!connectedDevice) {
-      Alert.alert('Error', 'No device connected');
+  const switchToCloud = (cloudId: string) => {
+    const cloud = connectedClouds.find(c => c.id === cloudId);
+    if (cloud && cloud.isConnected) {
+      setActiveCloudId(cloudId);
+      console.log(`Switched to cloud: ${cloud.name}`);
+    }
+  };
+
+  const sendBLECommand = async (command: string, cloudId?: string) => {
+    const targetCloudId = cloudId || activeCloudId;
+    const cloud = connectedClouds.find(c => c.id === targetCloudId);
+    
+    if (!cloud) {
+      Alert.alert('Error', 'No cloud connected');
       return;
     }
 
     try {
       const base64Command = btoa(command);
-      await connectedDevice.writeCharacteristicWithoutResponseForService(
+      await cloud.device.writeCharacteristicWithoutResponseForService(
         SERVICE_UUID,
         CHARACTERISTIC_UUID,
         base64Command,
       );
-      console.log('Sent command:', command);
+      console.log(`Sent command to ${cloud.name}:`, command);
     } catch (error) {
       console.log('Send command error:', error);
-      Alert.alert('Error', 'Failed to send command to device');
+      Alert.alert('Error', `Failed to send command to ${cloud.name}`);
     }
   };
 
@@ -281,22 +340,32 @@ export const useBluetooth = () => {
     }
   };
 
-  const getConnectionStatusColor = () => {
-    return connectedDevice ? '#4CAF50' : '#F44336';
-  };
-
   const setNotificationCallback = useCallback((callback: (message: string) => void) => {
     stateUpdateCallbackRef.current = callback;
   }, []);
 
+  // Get active cloud for backward compatibility
+  const activeCloud = connectedClouds.find(c => c.id === activeCloudId);
+  const connectedDevice = activeCloud?.device || null;
+
+  const getConnectionStatusColor = () => {
+    if (connectedClouds.length === 0) {
+      return '#F44336'; // Red for no connections
+    }
+    return '#4CAF50'; // Green for connected
+  };
+
   return {
     bluetoothState,
-    connectedDevice,
+    connectedClouds,
+    activeCloudId,
+    connectedDevice, // For backward compatibility
     isScanning,
     discoveredDevices,
     scanForDevices,
     connectToDevice,
     disconnectDevice,
+    switchToCloud,
     sendBLECommand,
     setNotificationCallback,
     getBluetoothStatusColor,

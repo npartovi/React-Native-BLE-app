@@ -13,6 +13,7 @@ interface LEDControlsProps extends LEDContextType {
   bluetoothState: State | null;
   connectedDevice: Device | null;
   onDisconnect: () => void;
+  onGoHome?: () => void;
 }
 
 export const LEDControls: React.FC<LEDControlsProps> = ({
@@ -46,6 +47,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   bluetoothState,
   connectedDevice,
   onDisconnect,
+  onGoHome,
 }) => {
   const getBluetoothIcon = () => {
     switch (bluetoothState) {
@@ -102,14 +104,24 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
           </Text>
         </View>
 
-        {/* Disconnect Button */}
+        {/* Action Buttons */}
         {connectedDevice && (
-          <TouchableOpacity
-            style={styles.disconnectButton}
-            onPress={onDisconnect}
-          >
-            <Text style={styles.disconnectText}>Disconnect</Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            {onGoHome && (
+              <TouchableOpacity
+                style={styles.homeButton}
+                onPress={onGoHome}
+              >
+                <Text style={styles.homeText}>🏠 Home</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.disconnectButton}
+              onPress={onDisconnect}
+            >
+              <Text style={styles.disconnectText}>Disconnect</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -275,17 +287,35 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontWeight: '500',
   },
-  disconnectButton: {
-    backgroundColor: '#ff4757',
-    paddingHorizontal: 10,
+  actionButtons: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    flex: 0.5,
+  },
+  homeButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 15,
-    flex: 0.35,
+    flex: 1,
+    alignItems: 'center',
+  },
+  homeText: {
+    color: theme.colors.textInverse,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  disconnectButton: {
+    backgroundColor: '#ff4757',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 15,
+    flex: 1,
     alignItems: 'center',
   },
   disconnectText: {
     color: theme.colors.textInverse,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
 });

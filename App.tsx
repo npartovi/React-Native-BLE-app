@@ -16,22 +16,29 @@ import {
   DeviceScanner,
   LEDControls,
   LaunchScreen,
+  CloudManager,
 } from './src/components';
 import { useBluetooth } from './src/hooks/useBluetooth';
 import { useLEDControl } from './src/hooks/useLEDControl';
 
+type AppScreen = 'home' | 'controls';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
 
   const {
     bluetoothState,
-    connectedDevice,
+    connectedClouds,
+    activeCloudId,
+    connectedDevice, // For backward compatibility
     isScanning,
     discoveredDevices,
     scanForDevices,
     connectToDevice,
     disconnectDevice,
+    switchToCloud,
     sendBLECommand,
     setNotificationCallback,
     getBluetoothStatusColor,
@@ -43,6 +50,26 @@ function App() {
     connectedDevice,
     setNotificationCallback,
   });
+
+  // Navigation handlers
+  const handleGoToControls = (cloudId: string) => {
+    if (cloudId !== activeCloudId) {
+      switchToCloud(cloudId);
+    }
+    setCurrentScreen('controls');
+  };
+
+  const handleGoHome = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleDisconnectCloud = async (cloudId: string) => {
+    await disconnectDevice(cloudId);
+    // If we disconnected the active cloud and we're on controls screen, go home
+    if (cloudId === activeCloudId && currentScreen === 'controls') {
+      setCurrentScreen('home');
+    }
+  };
 
   // Reset LED state when device disconnects
   useEffect(() => {
@@ -73,19 +100,33 @@ function App() {
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header - Only show when not connected */}
-        {!connectedDevice && <Header />}
-
-        {/* Device Scanner - Only show when not connected */}
-        {!connectedDevice && (
+        {currentScreen === 'home' ? (
           <>
+            {/* Header */}
+            <Header />
+
             {/* Combined Bluetooth & Connection Status */}
             <BluetoothStatusCard
               bluetoothState={bluetoothState}
               connectedDevice={connectedDevice}
-              onDisconnect={disconnectDevice}
+              onDisconnect={() => {
+                // For backward compatibility - disconnect active cloud
+                if (activeCloudId) {
+                  handleDisconnectCloud(activeCloudId);
+                }
+              }}
+            />
+
+            {/* Cloud Manager - Show connected clouds */}
+            <CloudManager
+              connectedClouds={connectedClouds}
+              activeCloudId={activeCloudId}
+              onSwitchToCloud={switchToCloud}
+              onDisconnectCloud={handleDisconnectCloud}
+              onControlCloud={handleGoToControls}
             />
             
+            {/* Device Scanner */}
             <DeviceScanner
               isScanning={isScanning}
               discoveredDevices={discoveredDevices}
@@ -93,10 +134,9 @@ function App() {
               onConnect={connectToDevice}
             />
           </>
-        )}
-
-        {/* LED Controls - Only show when connected */}
-        {connectedDevice && (
+        ) : (
+          /* LED Controls Screen */
+          connectedDevice && (
           <LEDControls
             ledPower={ledControl.ledPower}
             selectedColor={ledControl.selectedColor}
@@ -128,8 +168,14 @@ function App() {
             handleRandomIntervalChange={ledControl.handleRandomIntervalChange}
             bluetoothState={bluetoothState}
             connectedDevice={connectedDevice}
-            onDisconnect={disconnectDevice}
+            onDisconnect={() => {
+              if (activeCloudId) {
+                handleDisconnectCloud(activeCloudId);
+              }
+            }}
+            onGoHome={handleGoHome}
           />
+          )
         )}
       </ScrollView>
     </SafeAreaView>
