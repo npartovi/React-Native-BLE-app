@@ -165,8 +165,17 @@ uint8_t matrixEyeColor = LED_GREEN;
 uint8_t matrixPupilColor = LED_RED;
 bool matrixHeartMode = false;
 bool matrixVisualizerMode = false;
+bool matrixHeartEyeMode = false;
 uint8_t matrixHeartColor1 = LED_RED;
 uint8_t matrixHeartColor2 = LED_YELLOW;
+
+// Heart-Eye animation variables (uses same gazing logic as eyes)
+int8_t heartEyeX = 3, heartEyeY = 4;  // Pupil position in heart
+int8_t newHeartEyeX = 3, newHeartEyeY = 4;
+int8_t dHeartEyeX = 0, dHeartEyeY = 0;
+uint8_t heartEyeGazeCountdown = 75;
+uint8_t heartEyeGazeFrames = 50;
+uint8_t heartEyeBlinkCountdown = 100;
 
 // Audio visualizer variables
 uint8_t bands[8];
@@ -225,6 +234,9 @@ int8_t eyeX = 3, eyeY = 3;
 int8_t newX = 3, newY = 3;
 int8_t dX = 0, dY = 0;
 
+// Heart-Eye blink animation variables
+uint8_t heartBlinkIndex[] = { 1, 2, 3, 4, 3, 2, 1 };
+
 // Heart animation data - positioned at bottom of 8x8 grid
 const uint8_t PROGMEM heartImg[][8] = {
   { B00000000,         // Frame 1 - Small heart
@@ -251,6 +263,50 @@ const uint8_t PROGMEM heartImg[][8] = {
     B01111110,
     B00111100,
     B00011000 }
+};
+
+// Heart-Eye blink animation frames (based on heartImg[2] with progressive closing)
+const uint8_t PROGMEM heartBlinkImg[][8] = {
+  { B01100110,         // Frame 0 - Fully open heart (same as heartImg[2])
+    B11111111,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 },
+  { B00000000,         // Frame 1 - Slightly closed
+    B11111111,
+    B11111111,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 },
+  { B00000000,         // Frame 2 - More closed
+    B00000000,
+    B01100110,
+    B11111111,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00011000 },
+  { B00000000,         // Frame 3 - Nearly closed
+    B00000000,
+    B00000000,
+    B01100110,
+    B11111111,
+    B01111110,
+    B00111100,
+    B00000000 },
+  { B00000000,         // Frame 4 - Fully closed
+    B00000000,
+    B00000000,
+    B00000000,
+    B10000001,
+    B01111110,
+    B00000000,
+    B00000000 }
 };
 
 // Heart outline data for dual color effect - positioned at bottom
@@ -307,6 +363,8 @@ void setPalette(int paletteIndex);
 CRGB getPaletteColor(uint8_t index);
 void setupRandomColorMode(String animation);
 void heartAnimation();
+void heartEyeAnimation();
+void heartEyeGazingAnimation();
 void processAudioData();
 void displayVisualizer();
 
@@ -1381,11 +1439,23 @@ void processMatrixCommand(String command) {
   else if (command == "MATRIX_VISUALIZER_ON") {
     matrixVisualizerMode = true;
     matrixHeartMode = false; // Disable other modes
+    matrixHeartEyeMode = false;
     Serial.println("Matrix visualizer mode: ON (Demo Mode)");
   }
   else if (command == "MATRIX_VISUALIZER_OFF") {
     matrixVisualizerMode = false;
     Serial.println("Matrix visualizer mode: OFF");
+  }
+  // Handle heart-eye mode commands
+  else if (command == "MATRIX_HEARTEYE_ON") {
+    matrixHeartEyeMode = true;
+    matrixHeartMode = false; // Disable other modes
+    matrixVisualizerMode = false;
+    Serial.println("Matrix heart-eye mode: ON");
+  }
+  else if (command == "MATRIX_HEARTEYE_OFF") {
+    matrixHeartEyeMode = false;
+    Serial.println("Matrix heart-eye mode: OFF");
   }
   
   // Send confirmation back to app
@@ -1404,6 +1474,9 @@ void updateMatrixAnimation() {
   if (matrixVisualizerMode) {
     // Display visualizer - handled by separate task
     displayVisualizer();
+  } else if (matrixHeartEyeMode) {
+    // Display heart-eye animation
+    heartEyeAnimation();
   } else if (matrixHeartMode) {
     // Display heart animation
     heartAnimation();
@@ -1643,5 +1716,59 @@ void displayVisualizer() {
     }
     
     visualizerTimer = currentTime;
+  }
+}
+
+// Heart-Eye Animation - combination of heart shape with moving pupil
+void heartEyeAnimation() {
+  // Draw the heart shape with blinking effect
+  matrix.drawBitmap(0, 0, 
+    heartBlinkImg[
+      (heartEyeBlinkCountdown < sizeof(heartBlinkIndex)) ? // Currently blinking?
+      heartBlinkIndex[heartEyeBlinkCountdown] :            // Yes, look up bitmap #
+      0                                                     // No, show open heart
+    ], 8, 8, matrixHeartColor1);
+  
+  // Only show pupil when heart is open (not during blink frames 1-4)
+  if (heartEyeBlinkCountdown >= sizeof(heartBlinkIndex)) {
+    // Add the moving pupil inside the heart
+    heartEyeGazingAnimation();
+  }
+  
+  // Update blink countdown
+  if(--heartEyeBlinkCountdown == 0) heartEyeBlinkCountdown = random(5, 180);
+}
+
+// Heart-Eye gazing animation (adapted from regular eye gazing)
+void heartEyeGazingAnimation() {
+  // Check if heart and pupil colors are the same - if so, make pupil transparent
+  uint8_t pupilDrawColor = (matrixHeartColor1 == matrixPupilColor) ? LED_OFF : matrixPupilColor;
+  
+  if(--heartEyeGazeCountdown <= heartEyeGazeFrames) {
+    // Pupil is in motion - draw at interim position
+    matrix.fillRect(
+      newHeartEyeX - (dHeartEyeX * heartEyeGazeCountdown / heartEyeGazeFrames),
+      newHeartEyeY - (dHeartEyeY * heartEyeGazeCountdown / heartEyeGazeFrames),
+      2, 2, pupilDrawColor);
+    if(heartEyeGazeCountdown == 0) {    // Last frame?
+      heartEyeX = newHeartEyeX; heartEyeY = newHeartEyeY; // Update position
+      
+      // Pick new random position within the heart shape bounds
+      // Heart spans roughly from (1,2) to (6,6) - keep pupil within this area
+      do {
+        newHeartEyeX = random(2, 6); // X: 2-5 (2x2 pupil fits in 2-6 range)
+        newHeartEyeY = random(3, 6); // Y: 3-5 (keep in main body of heart)
+        dHeartEyeX = newHeartEyeX - 3;
+        dHeartEyeY = newHeartEyeY - 3;
+      } while((dHeartEyeX * dHeartEyeX + dHeartEyeY * dHeartEyeY) >= 9); // Keep within reasonable bounds
+      
+      dHeartEyeX = newHeartEyeX - heartEyeX;    // Horizontal distance to move
+      dHeartEyeY = newHeartEyeY - heartEyeY;    // Vertical distance to move
+      heartEyeGazeFrames = random(3, 15);       // Duration of movement
+      heartEyeGazeCountdown = random(heartEyeGazeFrames, 120); // Count to next movement
+    }
+  } else {
+    // Not in motion - draw pupil at current static position
+    matrix.fillRect(heartEyeX, heartEyeY, 2, 2, pupilDrawColor);
   }
 }

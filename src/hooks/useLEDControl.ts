@@ -249,13 +249,13 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     const newVisualizerMode = !matrixVisualizerMode;
     setMatrixVisualizerMode(newVisualizerMode);
 
-    // Disable other modes when enabling visualizer
+    // Disable other modes when enabling heart-eye mode
     if (newVisualizerMode && matrixHeartMode) {
       setMatrixHeartMode(false);
     }
 
     if (ledPower) {
-      const command = newVisualizerMode ? 'MATRIX_VISUALIZER_ON' : 'MATRIX_VISUALIZER_OFF';
+      const command = newVisualizerMode ? 'MATRIX_HEARTEYE_ON' : 'MATRIX_HEARTEYE_OFF';
       await sendBLECommand(command);
     }
   };

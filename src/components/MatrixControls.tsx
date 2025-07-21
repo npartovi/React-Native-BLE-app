@@ -7,11 +7,13 @@ interface MatrixControlsProps {
   matrixEyeColor: string;
   matrixPupilColor: string;
   matrixHeartMode: boolean;
+  matrixVisualizerMode: boolean;
   matrixHeartColor1: string;
   matrixHeartColor2: string;
   onMatrixEyeColorChange: (color: string) => void;
   onMatrixPupilColorChange: (color: string) => void;
   onMatrixHeartModeToggle: () => void;
+  onMatrixVisualizerModeToggle: () => void;
   onMatrixHeartColor1Change: (color: string) => void;
   onMatrixHeartColor2Change: (color: string) => void;
 }
@@ -224,15 +226,97 @@ const HeartVisualization: React.FC<{
   );
 };
 
+const HeartEyeVisualization: React.FC<{
+  heartColor: string;
+  pupilColor: string;
+}> = ({ heartColor, pupilColor }) => {
+  const getActualColor = (colorId: string) => {
+    const colorMap = {
+      'GREEN': theme.colors.success,
+      'YELLOW': theme.colors.warning,
+      'RED': theme.colors.error,
+    };
+    return colorMap[colorId] || theme.colors.error;
+  };
+
+  const actualHeartColor = getActualColor(heartColor);
+  const actualPupilColor = getActualColor(pupilColor);
+  const isPupilTransparent = heartColor === pupilColor;
+
+  // 8x8 pixel art heart pattern (large heart from Arduino)
+  const heartPattern = [
+    [0,1,1,0,0,1,1,0],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,0,0],
+    [0,0,0,1,1,0,0,0]
+  ];
+
+  // Pupil position (2x2 area within heart)
+  const pupilX = 3;
+  const pupilY = 4;
+
+  const renderPixelHeartEye = () => {
+    const pixels = [];
+    const pixelSize = 5;
+    const gap = 1;
+
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        if (heartPattern[y][x] === 1) {
+          // Check if this pixel is part of the pupil area
+          const isPupilArea = x >= pupilX && x < pupilX + 2 && 
+            y >= pupilY && y < pupilY + 2;
+          
+          // Only render non-pupil pixels when colors match (transparent pupil)
+          if (isPupilTransparent && isPupilArea) {
+            continue; // Skip rendering this pixel to make pupil transparent
+          }
+          
+          pixels.push(
+            <View
+              key={`${x}-${y}`}
+              style={[
+                styles.pixel,
+                {
+                  backgroundColor: isPupilArea ? actualPupilColor : actualHeartColor,
+                  left: x * (pixelSize + gap),
+                  top: y * (pixelSize + gap),
+                  width: pixelSize,
+                  height: pixelSize,
+                }
+              ]}
+            />
+          );
+        }
+      }
+    }
+    return pixels;
+  };
+
+  return (
+    <View style={styles.heartEyeContainer}>
+      <View style={styles.pixelHeartEye}>
+        {renderPixelHeartEye()}
+      </View>
+    </View>
+  );
+};
+
 export const MatrixControls: React.FC<MatrixControlsProps> = ({
   matrixEyeColor,
   matrixPupilColor,
   matrixHeartMode,
+  matrixVisualizerMode,
   matrixHeartColor1,
   matrixHeartColor2,
   onMatrixEyeColorChange,
   onMatrixPupilColorChange,
   onMatrixHeartModeToggle,
+  onMatrixVisualizerModeToggle,
   onMatrixHeartColor1Change,
   onMatrixHeartColor2Change,
 }) => {
@@ -248,24 +332,30 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
       <View style={styles.modeToggleContainer}>
         <TouchableOpacity
           style={[
-            styles.modeToggleButton,
-            !matrixHeartMode && styles.activeModeButton
+            styles.modeToggleButton3,
+            !matrixHeartMode && !matrixVisualizerMode && styles.activeModeButton
           ]}
-          onPress={() => matrixHeartMode && onMatrixHeartModeToggle()}
+          onPress={() => {
+            if (matrixHeartMode) onMatrixHeartModeToggle();
+            if (matrixVisualizerMode) onMatrixVisualizerModeToggle();
+          }}
         >
           <Text style={styles.modeToggleIcon}>👁️</Text>
           <Text style={[
             styles.modeToggleText,
-            !matrixHeartMode && styles.activeModeText
+            !matrixHeartMode && !matrixVisualizerMode && styles.activeModeText
           ]}>Eyes</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
-            styles.modeToggleButton,
+            styles.modeToggleButton3,
             matrixHeartMode && styles.activeModeButton
           ]}
-          onPress={() => !matrixHeartMode && onMatrixHeartModeToggle()}
+          onPress={() => {
+            if (!matrixHeartMode) onMatrixHeartModeToggle();
+            if (matrixVisualizerMode) onMatrixVisualizerModeToggle();
+          }}
         >
           <Text style={styles.modeToggleIcon}>💖</Text>
           <Text style={[
@@ -273,11 +363,33 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
             matrixHeartMode && styles.activeModeText
           ]}>Hearts</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.modeToggleButton3,
+            matrixVisualizerMode && styles.activeModeButton
+          ]}
+          onPress={() => {
+            if (!matrixVisualizerMode) onMatrixVisualizerModeToggle();
+            if (matrixHeartMode) onMatrixHeartModeToggle();
+          }}
+        >
+          <Text style={styles.modeToggleIcon}>💘</Text>
+          <Text style={[
+            styles.modeToggleText,
+            matrixVisualizerMode && styles.activeModeText
+          ]}>💘Eye</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.mainContainer}>
-        {/* Eye or Heart Visualization */}
-        {!matrixHeartMode ? (
+        {/* Matrix Visualization */}
+        {matrixVisualizerMode ? (
+          <HeartEyeVisualization
+            heartColor={matrixHeartColor1}
+            pupilColor={matrixPupilColor}
+          />
+        ) : !matrixHeartMode ? (
           <EyeVisualization 
             eyeColor={matrixEyeColor}
             pupilColor={matrixPupilColor}
@@ -291,7 +403,45 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
 
         {/* Color Selection */}
         <View style={styles.colorControls}>
-          {!matrixHeartMode ? (
+          {matrixVisualizerMode ? (
+            <>
+              {/* Heart-Eye Color Selection */}
+              <View style={styles.colorRow}>
+                <Text style={styles.colorLabel}>Heart</Text>
+                <View style={styles.colorOptions}>
+                  {MATRIX_COLORS.map(color => (
+                    <TouchableOpacity
+                      key={color.id}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: color.color },
+                        matrixHeartColor1 === color.id && styles.selectedSwatch,
+                      ]}
+                      onPress={() => onMatrixHeartColor1Change(color.id)}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Pupil Color Selection */}
+              <View style={styles.colorRow}>
+                <Text style={styles.colorLabel}>Pupil</Text>
+                <View style={styles.colorOptions}>
+                  {MATRIX_COLORS.map(color => (
+                    <TouchableOpacity
+                      key={color.id}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: color.color },
+                        matrixPupilColor === color.id && styles.selectedSwatch,
+                      ]}
+                      onPress={() => onMatrixPupilColorChange(color.id)}
+                    />
+                  ))}
+                </View>
+              </View>
+            </>
+          ) : !matrixHeartMode ? (
             <>
               {/* Eye Color Selection */}
               <View style={styles.colorRow}>
@@ -396,6 +546,16 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
     gap: theme.spacing.xs,
   },
+  modeToggleButton3: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    gap: 2,
+  },
   activeModeButton: {
     backgroundColor: theme.colors.primary,
   },
@@ -443,6 +603,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pixelHeart: {
+    width: 48,
+    height: 48,
+    position: 'relative',
+    backgroundColor: theme.colors.background,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
+    ...theme.shadows.sm,
+  },
+  heartEyeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  pixelHeartEye: {
     width: 48,
     height: 48,
     position: 'relative',
