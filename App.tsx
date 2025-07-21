@@ -106,6 +106,7 @@ function App() {
             matrixEyeColor={ledControl.matrixEyeColor}
             matrixPupilColor={ledControl.matrixPupilColor}
             matrixHeartMode={ledControl.matrixHeartMode}
+            matrixVisualizerMode={ledControl.matrixVisualizerMode}
             matrixHeartColor1={ledControl.matrixHeartColor1}
             matrixHeartColor2={ledControl.matrixHeartColor2}
             selectedPalette={ledControl.selectedPalette}
@@ -119,6 +120,7 @@ function App() {
             handleMatrixEyeColorChange={ledControl.handleMatrixEyeColorChange}
             handleMatrixPupilColorChange={ledControl.handleMatrixPupilColorChange}
             handleMatrixHeartModeToggle={ledControl.handleMatrixHeartModeToggle}
+            handleMatrixVisualizerModeToggle={ledControl.handleMatrixVisualizerModeToggle}
             handleMatrixHeartColor1Change={ledControl.handleMatrixHeartColor1Change}
             handleMatrixHeartColor2Change={ledControl.handleMatrixHeartColor2Change}
             handlePaletteSelect={ledControl.handlePaletteSelect}

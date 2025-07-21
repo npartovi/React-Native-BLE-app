@@ -16,6 +16,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [matrixEyeColor, setMatrixEyeColor] = useState('GREEN');
   const [matrixPupilColor, setMatrixPupilColor] = useState('RED');
   const [matrixHeartMode, setMatrixHeartMode] = useState(false);
+  const [matrixVisualizerMode, setMatrixVisualizerMode] = useState(false);
   const [matrixHeartColor1, setMatrixHeartColor1] = useState('RED');
   const [matrixHeartColor2, setMatrixHeartColor2] = useState('YELLOW');
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
@@ -94,13 +95,30 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const handleAnimationSelect = async (animationType: string) => {
     setActiveAnimation(animationType);
 
-    if (ledPower) {
-      const command = `ANIMATION_${animationType.toUpperCase()}`;
-      await sendBLECommand(command);
+    // Handle visualizer mode
+    if (animationType === 'visualizer') {
+      setMatrixVisualizerMode(true);
+      setMatrixHeartMode(false);
+      if (ledPower) {
+        await sendBLECommand('MATRIX_VISUALIZER_ON');
+      }
+    } else {
+      // Disable visualizer mode for other animations
+      if (matrixVisualizerMode) {
+        setMatrixVisualizerMode(false);
+        if (ledPower) {
+          await sendBLECommand('MATRIX_VISUALIZER_OFF');
+        }
+      }
       
-      // If color cycle mode is active, start it
-      if (colorCycleMode) {
-        await sendBLECommand('COLOR_CYCLE_ON');
+      if (ledPower) {
+        const command = `ANIMATION_${animationType.toUpperCase()}`;
+        await sendBLECommand(command);
+        
+        // If color cycle mode is active, start it
+        if (colorCycleMode) {
+          await sendBLECommand('COLOR_CYCLE_ON');
+        }
       }
     }
   };
@@ -227,6 +245,21 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   };
 
+  const handleMatrixVisualizerModeToggle = async () => {
+    const newVisualizerMode = !matrixVisualizerMode;
+    setMatrixVisualizerMode(newVisualizerMode);
+
+    // Disable other modes when enabling visualizer
+    if (newVisualizerMode && matrixHeartMode) {
+      setMatrixHeartMode(false);
+    }
+
+    if (ledPower) {
+      const command = newVisualizerMode ? 'MATRIX_VISUALIZER_ON' : 'MATRIX_VISUALIZER_OFF';
+      await sendBLECommand(command);
+    }
+  };
+
   // Reset LED power when device disconnects
   const resetLEDState = () => {
     setLedPower(false);
@@ -234,6 +267,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     setSelectedPalette(null);
     setActiveAnimation('none');
     setMatrixHeartMode(false);
+    setMatrixVisualizerMode(false);
     setMatrixHeartColor1('RED');
     setMatrixHeartColor2('YELLOW');
   };
@@ -256,6 +290,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     matrixEyeColor,
     matrixPupilColor,
     matrixHeartMode,
+    matrixVisualizerMode,
     matrixHeartColor1,
     matrixHeartColor2,
     selectedPalette,
@@ -269,6 +304,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     handleMatrixEyeColorChange,
     handleMatrixPupilColorChange,
     handleMatrixHeartModeToggle,
+    handleMatrixVisualizerModeToggle,
     handleMatrixHeartColor1Change,
     handleMatrixHeartColor2Change,
     handlePaletteSelect,

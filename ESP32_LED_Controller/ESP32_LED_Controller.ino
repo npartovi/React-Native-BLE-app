@@ -12,6 +12,8 @@
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 
+
+
 CRGB leds[NUM_LEDS];
 
 // 8x8 Matrix setup
@@ -162,8 +164,13 @@ bool matrixEnabled = false;
 uint8_t matrixEyeColor = LED_GREEN;
 uint8_t matrixPupilColor = LED_RED;
 bool matrixHeartMode = false;
+bool matrixVisualizerMode = false;
 uint8_t matrixHeartColor1 = LED_RED;
 uint8_t matrixHeartColor2 = LED_YELLOW;
+
+// Audio visualizer variables
+uint8_t bands[8];
+unsigned long visualizerTimer = 0;
 
 // Eye animation data
 const uint8_t PROGMEM blinkImg[][8] = {
@@ -300,6 +307,8 @@ void setPalette(int paletteIndex);
 CRGB getPaletteColor(uint8_t index);
 void setupRandomColorMode(String animation);
 void heartAnimation();
+void processAudioData();
+void displayVisualizer();
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -1368,6 +1377,16 @@ void processMatrixCommand(String command) {
     matrixHeartColor2 = LED_RED;
     Serial.println("Matrix heart color 2: Red");
   }
+  // Handle visualizer mode commands
+  else if (command == "MATRIX_VISUALIZER_ON") {
+    matrixVisualizerMode = true;
+    matrixHeartMode = false; // Disable other modes
+    Serial.println("Matrix visualizer mode: ON (Demo Mode)");
+  }
+  else if (command == "MATRIX_VISUALIZER_OFF") {
+    matrixVisualizerMode = false;
+    Serial.println("Matrix visualizer mode: OFF");
+  }
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -1382,7 +1401,10 @@ void updateMatrixAnimation() {
   
   matrix.clear();
   
-  if (matrixHeartMode) {
+  if (matrixVisualizerMode) {
+    // Display visualizer - handled by separate task
+    displayVisualizer();
+  } else if (matrixHeartMode) {
     // Display heart animation
     heartAnimation();
   } else {
@@ -1571,5 +1593,55 @@ void heartAnimation() {
   // Then draw the outline with color 2 (if different from color 1)
   if (matrixHeartColor1 != matrixHeartColor2) {
     matrix.drawBitmap(0, 0, heartOutline[heartAnimationStep], 8, 8, matrixHeartColor2);
+  }
+}
+
+
+// Process audio data and calculate frequency bands
+void processAudioData() {
+  // Demo pattern for visualizer
+  static int demoStep = 0;
+  
+  // Create animated demo bars with different patterns
+  for (int i = 0; i < 8; i++) {
+    // Create a wave pattern that moves across the bars
+    float phase = (demoStep + i * 30) * 0.05;
+    float height = (sin(phase) + 1.0) * 3.5 + 1; // Range 1-8
+    bands[i] = constrain((int)height, 0, 8);
+  }
+  demoStep += 2;
+}
+
+// Display audio visualizer on 8x8 matrix
+void displayVisualizer() {
+  unsigned long currentTime = millis();
+  
+  // Update display every 100ms
+  if (currentTime - visualizerTimer > 100) {
+    // Update demo data
+    processAudioData();
+    
+    // Draw each frequency band as vertical bars
+    for (int x = 0; x < 8; x++) {
+      uint8_t height = bands[x];
+      
+      // Draw column from bottom up
+      for (int y = 0; y < height; y++) {
+        uint8_t color;
+        
+        // Color coding: green for low frequencies, yellow for mid, red for high
+        if (y < 3) {
+          color = LED_GREEN;
+        } else if (y < 6) {
+          color = LED_YELLOW;
+        } else {
+          color = LED_RED;
+        }
+        
+        matrix.drawPixel(x, 7 - y, color); // Draw from bottom (7) upward
+      }
+    }
+    
+    visualizerTimer = currentTime;
   }
 }

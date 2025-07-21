@@ -26,6 +26,7 @@ export const ANIMATIONS: Animation[] = [
   { id: 'spiral', name: '🌀 Spiral Flow', color: '#f093fb' },
   { id: 'kaleidoscope', name: '🔮 Kaleidoscope', color: '#fad0c4' },
   { id: 'ocean', name: '🌊 Ocean Depths', color: '#209cff' },
+  { id: 'visualizer', name: '🎵 Music Visualizer', color: '#FF1744' },
   { id: 'random', name: '🎲 Random', color: '#FF00FF' },
 ];
 

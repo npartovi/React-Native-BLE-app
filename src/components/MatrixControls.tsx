@@ -39,17 +39,186 @@ const EyeVisualization: React.FC<{
   const actualPupilColor = getActualColor(pupilColor);
   const isPupilTransparent = eyeColor === pupilColor;
 
+  // 8x8 pixel art eye pattern (based on Arduino blinkImg[0])
+  const eyePattern = [
+    [0,0,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,0,0]
+  ];
+
+  // Pupil position (centered, 2x2)
+  const pupilX = 3;
+  const pupilY = 3;
+
+  const renderPixelEye = () => {
+    const pixels = [];
+    const pixelSize = 5;
+    const gap = 1;
+
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        if (eyePattern[y][x] === 1) {
+          // Check if this pixel is part of the pupil area
+          const isPupilArea = x >= pupilX && x < pupilX + 2 && 
+            y >= pupilY && y < pupilY + 2;
+          
+          // Only render non-pupil pixels when colors match (transparent pupil)
+          if (isPupilTransparent && isPupilArea) {
+            continue; // Skip rendering this pixel to make pupil transparent
+          }
+          
+          pixels.push(
+            <View
+              key={`${x}-${y}`}
+              style={[
+                styles.pixel,
+                {
+                  backgroundColor: isPupilArea ? actualPupilColor : actualEyeColor,
+                  left: x * (pixelSize + gap),
+                  top: y * (pixelSize + gap),
+                  width: pixelSize,
+                  height: pixelSize,
+                }
+              ]}
+            />
+          );
+        }
+      }
+    }
+    return pixels;
+  };
+
   return (
     <View style={styles.eyeContainer}>
-      <View style={[styles.eye, { backgroundColor: actualEyeColor }]}>
-        {!isPupilTransparent && (
-          <View style={[styles.pupil, { backgroundColor: actualPupilColor }]} />
-        )}
+      <View style={styles.pixelEye}>
+        {renderPixelEye()}
       </View>
-      <View style={[styles.eye, { backgroundColor: actualEyeColor }]}>
-        {!isPupilTransparent && (
-          <View style={[styles.pupil, { backgroundColor: actualPupilColor }]} />
-        )}
+      <View style={styles.pixelEye}>
+        {renderPixelEye()}
+      </View>
+    </View>
+  );
+};
+
+const HeartVisualization: React.FC<{
+  heartColor1: string;
+  heartColor2: string;
+}> = ({ heartColor1, heartColor2 }) => {
+  const getActualColor = (colorId: string) => {
+    const colorMap = {
+      'GREEN': theme.colors.success,
+      'YELLOW': theme.colors.warning,
+      'RED': theme.colors.error,
+    };
+    return colorMap[colorId] || theme.colors.error;
+  };
+
+  const actualColor1 = getActualColor(heartColor1);
+  const actualColor2 = getActualColor(heartColor2);
+  const isDualColor = heartColor1 !== heartColor2;
+
+  // 8x8 pixel art heart pattern (Frame 3 - Large heart from Arduino)
+  const heartFillPattern = [
+    [0,1,1,0,0,1,1,0],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,0,0],
+    [0,0,0,1,1,0,0,0]
+  ];
+
+  // Heart outline pattern (for dual color effect)
+  const heartOutlinePattern = [
+    [0,1,1,0,0,1,1,0],
+    [1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,1],
+    [0,1,0,0,0,0,1,0],
+    [0,0,1,0,0,1,0,0],
+    [0,0,0,1,1,0,0,0]
+  ];
+
+  const renderPixelHeart = () => {
+    const pixels = [];
+    const pixelSize = 5;
+    const gap = 1;
+
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        // For dual color mode, check if pixel is outline or fill
+        if (isDualColor) {
+          if (heartOutlinePattern[y][x] === 1) {
+            // Outline pixel
+            pixels.push(
+              <View
+                key={`${x}-${y}`}
+                style={[
+                  styles.pixel,
+                  {
+                    backgroundColor: actualColor2,
+                    left: x * (pixelSize + gap),
+                    top: y * (pixelSize + gap),
+                    width: pixelSize,
+                    height: pixelSize,
+                  }
+                ]}
+              />
+            );
+          } else if (heartFillPattern[y][x] === 1) {
+            // Fill pixel (inside the outline)
+            pixels.push(
+              <View
+                key={`${x}-${y}`}
+                style={[
+                  styles.pixel,
+                  {
+                    backgroundColor: actualColor1,
+                    left: x * (pixelSize + gap),
+                    top: y * (pixelSize + gap),
+                    width: pixelSize,
+                    height: pixelSize,
+                  }
+                ]}
+              />
+            );
+          }
+        } else {
+          // Single color mode - just use the fill pattern
+          if (heartFillPattern[y][x] === 1) {
+            pixels.push(
+              <View
+                key={`${x}-${y}`}
+                style={[
+                  styles.pixel,
+                  {
+                    backgroundColor: actualColor1,
+                    left: x * (pixelSize + gap),
+                    top: y * (pixelSize + gap),
+                    width: pixelSize,
+                    height: pixelSize,
+                  }
+                ]}
+              />
+            );
+          }
+        }
+      }
+    }
+    return pixels;
+  };
+
+  return (
+    <View style={styles.heartContainer}>
+      <View style={styles.pixelHeart}>
+        {renderPixelHeart()}
       </View>
     </View>
   );
@@ -107,11 +276,18 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
       </View>
 
       <View style={styles.mainContainer}>
-        {/* Eye Visualization */}
-        <EyeVisualization 
-          eyeColor={matrixEyeColor}
-          pupilColor={matrixPupilColor}
-        />
+        {/* Eye or Heart Visualization */}
+        {!matrixHeartMode ? (
+          <EyeVisualization 
+            eyeColor={matrixEyeColor}
+            pupilColor={matrixPupilColor}
+          />
+        ) : (
+          <HeartVisualization
+            heartColor1={matrixHeartColor1}
+            heartColor2={matrixHeartColor2}
+          />
+        )}
 
         {/* Color Selection */}
         <View style={styles.colorControls}>
@@ -243,25 +419,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
     flex: 1,
   },
-  eye: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+  pixelEye: {
+    width: 48,
+    height: 48,
+    position: 'relative',
+    backgroundColor: theme.colors.background,
     borderWidth: 2,
     borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
     ...theme.shadows.sm,
   },
-  pupil: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.textInverse,
+  pixel: {
+    position: 'absolute',
+    borderRadius: 1,
+  },
+  heartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  pixelHeart: {
+    width: 48,
+    height: 48,
+    position: 'relative',
+    backgroundColor: theme.colors.background,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
+    ...theme.shadows.sm,
   },
   colorControls: {
     flex: 1.2,
