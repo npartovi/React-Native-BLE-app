@@ -221,6 +221,11 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     const newHeartMode = !matrixHeartMode;
     setMatrixHeartMode(newHeartMode);
 
+    // Disable other modes when enabling heart mode
+    if (newHeartMode) {
+      setMatrixVisualizerMode(false);
+    }
+
     if (ledPower) {
       const command = newHeartMode ? 'MATRIX_HEART_ON' : 'MATRIX_HEART_OFF';
       await sendBLECommand(command);
@@ -250,7 +255,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     setMatrixVisualizerMode(newVisualizerMode);
 
     // Disable other modes when enabling heart-eye mode
-    if (newVisualizerMode && matrixHeartMode) {
+    if (newVisualizerMode) {
       setMatrixHeartMode(false);
     }
 

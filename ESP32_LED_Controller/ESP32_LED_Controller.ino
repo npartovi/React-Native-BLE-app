@@ -181,6 +181,7 @@ uint8_t heartEyeBlinkCountdown = 100;
 uint8_t bands[8];
 unsigned long visualizerTimer = 0;
 
+
 // Eye animation data
 const uint8_t PROGMEM blinkImg[][8] = {
   { B00111100,         // Fully open eye
@@ -1401,6 +1402,8 @@ void processMatrixCommand(String command) {
   // Handle heart mode commands
   else if (command == "MATRIX_HEART_ON") {
     matrixHeartMode = true;
+    matrixVisualizerMode = false; // Disable other modes
+    matrixHeartEyeMode = false;
     heartAnimationStep = 0;
     heartAnimationTimer = millis();
     heartExpanding = true;

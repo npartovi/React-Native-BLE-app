@@ -19,6 +19,10 @@ export interface LEDContextType {
   colorCycleMode: boolean;
   matrixEyeColor: string;
   matrixPupilColor: string;
+  matrixHeartMode: boolean;
+  matrixVisualizerMode: boolean;
+  matrixHeartColor1: string;
+  matrixHeartColor2: string;
   selectedPalette: number | null;
   toggleLED: () => Promise<void>;
   handleColorChange: (color: string) => Promise<void>;
@@ -29,6 +33,10 @@ export interface LEDContextType {
   toggleColorCycle: () => Promise<void>;
   handleMatrixEyeColorChange: (color: string) => Promise<void>;
   handleMatrixPupilColorChange: (color: string) => Promise<void>;
+  handleMatrixHeartModeToggle: () => Promise<void>;
+  handleMatrixVisualizerModeToggle: () => Promise<void>;
+  handleMatrixHeartColor1Change: (color: string) => Promise<void>;
+  handleMatrixHeartColor2Change: (color: string) => Promise<void>;
   handlePaletteSelect: (paletteId: number) => Promise<void>;
   handlePaletteDisable: () => Promise<void>;
   handleRandomIntervalChange: (seconds: number) => Promise<void>;

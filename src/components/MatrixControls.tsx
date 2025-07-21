@@ -226,6 +226,7 @@ const HeartVisualization: React.FC<{
   );
 };
 
+
 const HeartEyeVisualization: React.FC<{
   heartColor: string;
   pupilColor: string;
@@ -555,6 +556,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xs,
     borderRadius: theme.borderRadius.sm,
     gap: 2,
+  },
+  modeToggleButton4: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: 2,
+    borderRadius: theme.borderRadius.sm,
+    gap: 1,
   },
   activeModeButton: {
     backgroundColor: theme.colors.primary,
