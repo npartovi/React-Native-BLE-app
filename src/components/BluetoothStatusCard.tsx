@@ -68,7 +68,7 @@ export const BluetoothStatusCard: React.FC<BluetoothStatusCardProps> = ({
             ]}
           />
           <Text style={styles.statusLabel}>
-            {connectedDevice ? 'ESP32' : 'Off'}
+            {connectedDevice ? 'Electric Dream' : 'Off'}
           </Text>
         </View>
 

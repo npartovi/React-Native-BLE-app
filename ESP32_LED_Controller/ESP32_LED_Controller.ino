@@ -485,8 +485,12 @@ void setup() {
   // Initialize default palette
   setPalette(0);
 
-  // Create the BLE Device with iOS-friendly name
-  BLEDevice::init("ESP32 LED Controller");
+  // Create unique cloud name with random ID
+  randomSeed(analogRead(0) + millis());
+  String cloudId = String(random(1000, 9999));
+  String deviceName = "Cloud-" + cloudId;
+  
+  BLEDevice::init(deviceName.c_str());
   
   // Set device appearance as generic remote control for iOS compatibility
   BLEDevice::setCustomGapHandler(nullptr);

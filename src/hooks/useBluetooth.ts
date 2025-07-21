@@ -176,7 +176,7 @@ export const useBluetooth = () => {
             device.name?.includes('ESP32') ||
             device.localName?.includes('ESP32')
           ) {
-            console.log('Adding connected ESP32 device:', device.name);
+            console.log('Adding connected Electric Dream device:', device.name);
             setDiscoveredDevices(prevDevices => {
               if (!prevDevices.find(d => d.id === device.id)) {
                 return [...prevDevices, device];

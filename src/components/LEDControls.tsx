@@ -100,7 +100,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
             ]}
           />
           <Text style={styles.statusLabel}>
-            {connectedDevice ? 'ESP32' : 'Off'}
+            {connectedDevice ? 'Electric Dream' : 'Off'}
           </Text>
         </View>
 

@@ -21,7 +21,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [matrixHeartColor2, setMatrixHeartColor2] = useState('YELLOW');
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
 
-  // Handle state updates from ESP32
+  // Handle state updates from Electric Dream device
   useEffect(() => {
     const handleStateUpdate = (message: string) => {
       console.log('Processing state update:', message);
@@ -280,7 +280,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   // Set default state when connecting for the first time
   const setDefaultConnectionState = async () => {
     setActiveAnimation('solid');
-    // Send the solid command to ESP32 if LED is on
+    // Send the solid command to Electric Dream device if LED is on
     if (ledPower) {
       await sendBLECommand('SOLID');
     }

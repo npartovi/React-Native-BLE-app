@@ -20,7 +20,7 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>
-        ESP32 Devices
+        Electric Dream Devices
       </Text>
       <TouchableOpacity
         style={[
@@ -31,7 +31,7 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
         disabled={isScanning}
       >
         <Text style={styles.buttonText}>
-          {isScanning ? 'Scanning...' : 'Scan for ESP32 Devices'}
+          {isScanning ? 'Scanning...' : 'Scan for Electric Dream Devices'}
         </Text>
       </TouchableOpacity>
 
@@ -44,7 +44,7 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
               onPress={() => onConnect(device)}
             >
               <Text style={styles.deviceName}>
-                {device.name || 'Unknown ESP32'}
+                {device.name || 'Unknown Electric Dream Device'}
               </Text>
               <Text style={styles.deviceId}>
                 {device.id}
