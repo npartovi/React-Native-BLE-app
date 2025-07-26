@@ -18,6 +18,7 @@ CRGB leds[NUM_LEDS];
 
 // 8x8 Matrix setup
 Adafruit_BicolorMatrix matrix = Adafruit_BicolorMatrix();
+Adafruit_BicolorMatrix matrix2 = Adafruit_BicolorMatrix();
 
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
@@ -478,8 +479,9 @@ void setup() {
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
 
-  // Initialize 8x8 Matrix
+  // Initialize 8x8 Matrices
   matrix.begin(0x70);
+  matrix2.begin(0x71);
   randomSeed(analogRead(0));
 
   // Initialize default palette
@@ -609,9 +611,11 @@ void turnOffLEDs() {
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
   
-  // Turn off matrix
+  // Turn off both matrices
   matrix.clear();
   matrix.writeDisplay();
+  matrix2.clear();
+  matrix2.writeDisplay();
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -1477,6 +1481,7 @@ void updateMatrixAnimation() {
   if (!matrixEnabled) return;
   
   matrix.clear();
+  matrix2.clear();
   
   if (matrixVisualizerMode) {
     // Display visualizer - handled by separate task
@@ -1494,10 +1499,17 @@ void updateMatrixAnimation() {
   }
   
   matrix.writeDisplay();
+  matrix2.writeDisplay();
 }
 
 void blinkingAnimation() {
   matrix.drawBitmap(0, 0,
+    blinkImg[
+      (blinkCountdown < sizeof(blinkIndex)) ? // Currently blinking?
+      blinkIndex[blinkCountdown] :            // Yes, look up bitmap #
+      0                                       // No, show bitmap 0
+    ], 8, 8, matrixEyeColor);
+  matrix2.drawBitmap(0, 0,
     blinkImg[
       (blinkCountdown < sizeof(blinkIndex)) ? // Currently blinking?
       blinkIndex[blinkCountdown] :            // Yes, look up bitmap #
@@ -1518,6 +1530,10 @@ void gazingAnimation() {
       newX - (dX * gazeCountdown / gazeFrames),
       newY - (dY * gazeCountdown / gazeFrames),
       2, 2, pupilDrawColor);
+    matrix2.fillRect(
+      newX - (dX * gazeCountdown / gazeFrames),
+      newY - (dY * gazeCountdown / gazeFrames),
+      2, 2, pupilDrawColor);
     if(gazeCountdown == 0) {    // Last frame?
       eyeX = newX; eyeY = newY; // Yes. What's new is old, then...
       do { // Pick random positions until one is within the eye circle
@@ -1532,6 +1548,7 @@ void gazingAnimation() {
   } else {
     // Not in motion yet -- draw pupil at current static position (or transparent if same color)
     matrix.fillRect(eyeX, eyeY, 2, 2, pupilDrawColor);
+    matrix2.fillRect(eyeX, eyeY, 2, 2, pupilDrawColor);
   }
 }
 
@@ -1666,13 +1683,15 @@ void heartAnimation() {
     heartAnimationTimer = currentTime;
   }
   
-  // Draw dual-color heart effect
+  // Draw dual-color heart effect on both matrices
   // First draw the filled heart with color 1
   matrix.drawBitmap(0, 0, heartImg[heartAnimationStep], 8, 8, matrixHeartColor1);
+  matrix2.drawBitmap(0, 0, heartImg[heartAnimationStep], 8, 8, matrixHeartColor1);
   
   // Then draw the outline with color 2 (if different from color 1)
   if (matrixHeartColor1 != matrixHeartColor2) {
     matrix.drawBitmap(0, 0, heartOutline[heartAnimationStep], 8, 8, matrixHeartColor2);
+    matrix2.drawBitmap(0, 0, heartOutline[heartAnimationStep], 8, 8, matrixHeartColor2);
   }
 }
 
@@ -1719,6 +1738,7 @@ void displayVisualizer() {
         }
         
         matrix.drawPixel(x, 7 - y, color); // Draw from bottom (7) upward
+        matrix2.drawPixel(x, 7 - y, color); // Draw from bottom (7) upward
       }
     }
     
@@ -1728,8 +1748,14 @@ void displayVisualizer() {
 
 // Heart-Eye Animation - combination of heart shape with moving pupil
 void heartEyeAnimation() {
-  // Draw the heart shape with blinking effect
+  // Draw the heart shape with blinking effect on both matrices
   matrix.drawBitmap(0, 0, 
+    heartBlinkImg[
+      (heartEyeBlinkCountdown < sizeof(heartBlinkIndex)) ? // Currently blinking?
+      heartBlinkIndex[heartEyeBlinkCountdown] :            // Yes, look up bitmap #
+      0                                                     // No, show open heart
+    ], 8, 8, matrixHeartColor1);
+  matrix2.drawBitmap(0, 0, 
     heartBlinkImg[
       (heartEyeBlinkCountdown < sizeof(heartBlinkIndex)) ? // Currently blinking?
       heartBlinkIndex[heartEyeBlinkCountdown] :            // Yes, look up bitmap #
@@ -1752,8 +1778,12 @@ void heartEyeGazingAnimation() {
   uint8_t pupilDrawColor = (matrixHeartColor1 == matrixPupilColor) ? LED_OFF : matrixPupilColor;
   
   if(--heartEyeGazeCountdown <= heartEyeGazeFrames) {
-    // Pupil is in motion - draw at interim position
+    // Pupil is in motion - draw at interim position on both matrices
     matrix.fillRect(
+      newHeartEyeX - (dHeartEyeX * heartEyeGazeCountdown / heartEyeGazeFrames),
+      newHeartEyeY - (dHeartEyeY * heartEyeGazeCountdown / heartEyeGazeFrames),
+      2, 2, pupilDrawColor);
+    matrix2.fillRect(
       newHeartEyeX - (dHeartEyeX * heartEyeGazeCountdown / heartEyeGazeFrames),
       newHeartEyeY - (dHeartEyeY * heartEyeGazeCountdown / heartEyeGazeFrames),
       2, 2, pupilDrawColor);
@@ -1775,7 +1805,8 @@ void heartEyeGazingAnimation() {
       heartEyeGazeCountdown = random(heartEyeGazeFrames, 120); // Count to next movement
     }
   } else {
-    // Not in motion - draw pupil at current static position
+    // Not in motion - draw pupil at current static position on both matrices
     matrix.fillRect(heartEyeX, heartEyeY, 2, 2, pupilDrawColor);
+    matrix2.fillRect(heartEyeX, heartEyeY, 2, 2, pupilDrawColor);
   }
 }
