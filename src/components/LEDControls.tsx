@@ -26,6 +26,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   matrixPupilColor,
   matrixHeartMode,
   matrixVisualizerMode,
+  matrixClockMode,
   matrixHeartColor1,
   matrixHeartColor2,
   selectedPalette,
@@ -40,6 +41,7 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   handleMatrixPupilColorChange,
   handleMatrixHeartModeToggle,
   handleMatrixVisualizerModeToggle,
+  handleMatrixClockModeToggle,
   handleMatrixHeartColor1Change,
   handleMatrixHeartColor2Change,
   handlePaletteSelect,
@@ -174,12 +176,14 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
             matrixPupilColor={matrixPupilColor}
             matrixHeartMode={matrixHeartMode}
             matrixVisualizerMode={matrixVisualizerMode}
+            matrixClockMode={matrixClockMode}
             matrixHeartColor1={matrixHeartColor1}
             matrixHeartColor2={matrixHeartColor2}
             onMatrixEyeColorChange={handleMatrixEyeColorChange}
             onMatrixPupilColorChange={handleMatrixPupilColorChange}
             onMatrixHeartModeToggle={handleMatrixHeartModeToggle}
             onMatrixVisualizerModeToggle={handleMatrixVisualizerModeToggle}
+            onMatrixClockModeToggle={handleMatrixClockModeToggle}
             onMatrixHeartColor1Change={handleMatrixHeartColor1Change}
             onMatrixHeartColor2Change={handleMatrixHeartColor2Change}
           />

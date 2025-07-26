@@ -27,6 +27,7 @@ export const useBluetooth = () => {
     matrixPupilColor: 'RED',
     matrixHeartMode: false,
     matrixVisualizerMode: false,
+    matrixClockMode: false,
     matrixHeartColor1: 'RED',
     matrixHeartColor2: 'YELLOW',
     selectedPalette: null,

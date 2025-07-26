@@ -17,6 +17,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [matrixPupilColor, setMatrixPupilColor] = useState('RED');
   const [matrixHeartMode, setMatrixHeartMode] = useState(false);
   const [matrixVisualizerMode, setMatrixVisualizerMode] = useState(false);
+  const [matrixClockMode, setMatrixClockMode] = useState(false);
   const [matrixHeartColor1, setMatrixHeartColor1] = useState('RED');
   const [matrixHeartColor2, setMatrixHeartColor2] = useState('YELLOW');
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
@@ -99,6 +100,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     if (animationType === 'visualizer') {
       setMatrixVisualizerMode(true);
       setMatrixHeartMode(false);
+      setMatrixClockMode(false);
       if (ledPower) {
         await sendBLECommand('MATRIX_VISUALIZER_ON');
       }
@@ -224,6 +226,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     // Disable other modes when enabling heart mode
     if (newHeartMode) {
       setMatrixVisualizerMode(false);
+      setMatrixClockMode(false);
     }
 
     if (ledPower) {
@@ -257,11 +260,42 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     // Disable other modes when enabling heart-eye mode
     if (newVisualizerMode) {
       setMatrixHeartMode(false);
+      setMatrixClockMode(false);
     }
 
     if (ledPower) {
       const command = newVisualizerMode ? 'MATRIX_HEARTEYE_ON' : 'MATRIX_HEARTEYE_OFF';
       await sendBLECommand(command);
+    }
+  };
+
+  const handleMatrixClockModeToggle = async () => {
+    const newClockMode = !matrixClockMode;
+    setMatrixClockMode(newClockMode);
+
+    // Disable other modes when enabling clock mode
+    if (newClockMode) {
+      setMatrixHeartMode(false);
+      setMatrixVisualizerMode(false);
+      
+      // Set current time when enabling clock mode
+      const now = new Date();
+      let hour = now.getHours();
+      const minute = now.getMinutes();
+      
+      // Convert to 12-hour format
+      if (hour === 0) hour = 12;
+      else if (hour > 12) hour = hour - 12;
+      
+      // Send time to device
+      if (ledPower) {
+        await sendBLECommand('MATRIX_CLOCK_ON');
+        await sendBLECommand(`MATRIX_TIME_${hour}_${minute}`);
+      }
+    } else {
+      if (ledPower) {
+        await sendBLECommand('MATRIX_CLOCK_OFF');
+      }
     }
   };
 
@@ -273,6 +307,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     setActiveAnimation('none');
     setMatrixHeartMode(false);
     setMatrixVisualizerMode(false);
+    setMatrixClockMode(false);
     setMatrixHeartColor1('RED');
     setMatrixHeartColor2('YELLOW');
   };
@@ -296,6 +331,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     matrixPupilColor,
     matrixHeartMode,
     matrixVisualizerMode,
+    matrixClockMode,
     matrixHeartColor1,
     matrixHeartColor2,
     selectedPalette,
@@ -310,6 +346,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     handleMatrixPupilColorChange,
     handleMatrixHeartModeToggle,
     handleMatrixVisualizerModeToggle,
+    handleMatrixClockModeToggle,
     handleMatrixHeartColor1Change,
     handleMatrixHeartColor2Change,
     handlePaletteSelect,

@@ -8,12 +8,14 @@ interface MatrixControlsProps {
   matrixPupilColor: string;
   matrixHeartMode: boolean;
   matrixVisualizerMode: boolean;
+  matrixClockMode: boolean;
   matrixHeartColor1: string;
   matrixHeartColor2: string;
   onMatrixEyeColorChange: (color: string) => void;
   onMatrixPupilColorChange: (color: string) => void;
   onMatrixHeartModeToggle: () => void;
   onMatrixVisualizerModeToggle: () => void;
+  onMatrixClockModeToggle: () => void;
   onMatrixHeartColor1Change: (color: string) => void;
   onMatrixHeartColor2Change: (color: string) => void;
 }
@@ -307,17 +309,99 @@ const HeartEyeVisualization: React.FC<{
   );
 };
 
+const ClockVisualization: React.FC = () => {
+  // Get current time for visualization
+  const now = new Date();
+  let hour = now.getHours();
+  const minute = now.getMinutes();
+  
+  // Convert to 12-hour format
+  if (hour === 0) hour = 12;
+  else if (hour > 12) hour = hour - 12;
+  
+  // Extract digits
+  const hourTens = Math.floor(hour / 10);
+  const hourOnes = hour % 10;
+  const minuteTens = Math.floor(minute / 10);
+  const minuteOnes = minute % 10;
+  
+  // Simplified 4x4 digit patterns for preview
+  const digitPatterns = {
+    0: [[1,1,1,1],[1,0,0,1],[1,0,0,1],[1,1,1,1]],
+    1: [[0,0,1,0],[0,1,1,0],[0,0,1,0],[0,1,1,1]],
+    2: [[1,1,1,1],[0,0,0,1],[1,1,1,0],[1,1,1,1]],
+    3: [[1,1,1,1],[0,0,1,1],[0,0,0,1],[1,1,1,1]],
+    4: [[1,0,0,1],[1,0,0,1],[1,1,1,1],[0,0,0,1]],
+    5: [[1,1,1,1],[1,0,0,0],[1,1,1,1],[0,0,0,1]],
+    6: [[1,1,1,1],[1,0,0,0],[1,1,1,1],[1,0,0,1]],
+    7: [[1,1,1,1],[0,0,0,1],[0,0,1,0],[0,1,0,0]],
+    8: [[1,1,1,1],[1,1,1,1],[1,0,0,1],[1,1,1,1]],
+    9: [[1,1,1,1],[1,0,0,1],[1,1,1,1],[0,0,0,1]]
+  };
+  
+  const renderDigit = (digit: number, offsetX: number) => {
+    const pattern = digitPatterns[digit];
+    const pixels = [];
+    const pixelSize = 3;
+    const gap = 1;
+    
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        if (pattern[y][x] === 1) {
+          pixels.push(
+            <View
+              key={`${offsetX}-${x}-${y}`}
+              style={[
+                styles.clockPixel,
+                {
+                  backgroundColor: theme.colors.success,
+                  left: offsetX + x * (pixelSize + gap),
+                  top: y * (pixelSize + gap),
+                  width: pixelSize,
+                  height: pixelSize,
+                }
+              ]}
+            />
+          );
+        }
+      }
+    }
+    return pixels;
+  };
+  
+  return (
+    <View style={styles.clockContainer}>
+      <View style={styles.clockMatrix}>
+        <Text style={styles.clockLabel}>Hours</Text>
+        <View style={styles.pixelClock}>
+          {hourTens > 0 && renderDigit(hourTens, 0)}
+          {renderDigit(hourOnes, 20)}
+        </View>
+      </View>
+      <View style={styles.clockMatrix}>
+        <Text style={styles.clockLabel}>Minutes</Text>
+        <View style={styles.pixelClock}>
+          {renderDigit(minuteTens, 0)}
+          {renderDigit(minuteOnes, 20)}
+        </View>
+      </View>
+    </View>
+  );
+};
+
 export const MatrixControls: React.FC<MatrixControlsProps> = ({
   matrixEyeColor,
   matrixPupilColor,
   matrixHeartMode,
   matrixVisualizerMode,
+  matrixClockMode,
   matrixHeartColor1,
   matrixHeartColor2,
   onMatrixEyeColorChange,
   onMatrixPupilColorChange,
   onMatrixHeartModeToggle,
   onMatrixVisualizerModeToggle,
+  onMatrixClockModeToggle,
   onMatrixHeartColor1Change,
   onMatrixHeartColor2Change,
 }) => {
@@ -333,29 +417,31 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
       <View style={styles.modeToggleContainer}>
         <TouchableOpacity
           style={[
-            styles.modeToggleButton3,
-            !matrixHeartMode && !matrixVisualizerMode && styles.activeModeButton
+            styles.modeToggleButton4,
+            !matrixHeartMode && !matrixVisualizerMode && !matrixClockMode && styles.activeModeButton
           ]}
           onPress={() => {
             if (matrixHeartMode) onMatrixHeartModeToggle();
             if (matrixVisualizerMode) onMatrixVisualizerModeToggle();
+            if (matrixClockMode) onMatrixClockModeToggle();
           }}
         >
           <Text style={styles.modeToggleIcon}>👁️</Text>
           <Text style={[
             styles.modeToggleText,
-            !matrixHeartMode && !matrixVisualizerMode && styles.activeModeText
+            !matrixHeartMode && !matrixVisualizerMode && !matrixClockMode && styles.activeModeText
           ]}>Eyes</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
-            styles.modeToggleButton3,
+            styles.modeToggleButton4,
             matrixHeartMode && styles.activeModeButton
           ]}
           onPress={() => {
             if (!matrixHeartMode) onMatrixHeartModeToggle();
             if (matrixVisualizerMode) onMatrixVisualizerModeToggle();
+            if (matrixClockMode) onMatrixClockModeToggle();
           }}
         >
           <Text style={styles.modeToggleIcon}>💖</Text>
@@ -367,12 +453,13 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
 
         <TouchableOpacity
           style={[
-            styles.modeToggleButton3,
+            styles.modeToggleButton4,
             matrixVisualizerMode && styles.activeModeButton
           ]}
           onPress={() => {
             if (!matrixVisualizerMode) onMatrixVisualizerModeToggle();
             if (matrixHeartMode) onMatrixHeartModeToggle();
+            if (matrixClockMode) onMatrixClockModeToggle();
           }}
         >
           <Text style={styles.modeToggleIcon}>💘</Text>
@@ -381,11 +468,31 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
             matrixVisualizerMode && styles.activeModeText
           ]}>💘Eye</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.modeToggleButton4,
+            matrixClockMode && styles.activeModeButton
+          ]}
+          onPress={() => {
+            if (!matrixClockMode) onMatrixClockModeToggle();
+            if (matrixHeartMode) onMatrixHeartModeToggle();
+            if (matrixVisualizerMode) onMatrixVisualizerModeToggle();
+          }}
+        >
+          <Text style={styles.modeToggleIcon}>🕐</Text>
+          <Text style={[
+            styles.modeToggleText,
+            matrixClockMode && styles.activeModeText
+          ]}>Clock</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.mainContainer}>
         {/* Matrix Visualization */}
-        {matrixVisualizerMode ? (
+        {matrixClockMode ? (
+          <ClockVisualization />
+        ) : matrixVisualizerMode ? (
           <HeartEyeVisualization
             heartColor={matrixHeartColor1}
             pupilColor={matrixPupilColor}
@@ -403,8 +510,9 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         )}
 
         {/* Color Selection */}
-        <View style={styles.colorControls}>
-          {matrixVisualizerMode ? (
+        {!matrixClockMode && (
+          <View style={styles.colorControls}>
+            {matrixVisualizerMode ? (
             <>
               {/* Heart-Eye Color Selection */}
               <View style={styles.colorRow}>
@@ -518,8 +626,9 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
                 </View>
               </View>
             </>
-          )}
-        </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -672,5 +781,35 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.textPrimary,
     borderWidth: 3,
     transform: [{ scale: 1.1 }],
+  },
+  clockContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    flex: 1,
+  },
+  clockMatrix: {
+    alignItems: 'center',
+  },
+  clockLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+    marginBottom: 4,
+  },
+  pixelClock: {
+    width: 40,
+    height: 20,
+    position: 'relative',
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.sm,
+    ...theme.shadows.sm,
+  },
+  clockPixel: {
+    position: 'absolute',
+    borderRadius: 1,
   },
 });

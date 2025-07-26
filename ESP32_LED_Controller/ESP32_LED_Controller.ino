@@ -167,8 +167,14 @@ uint8_t matrixPupilColor = LED_RED;
 bool matrixHeartMode = false;
 bool matrixVisualizerMode = false;
 bool matrixHeartEyeMode = false;
+bool matrixClockMode = false;
 uint8_t matrixHeartColor1 = LED_RED;
 uint8_t matrixHeartColor2 = LED_YELLOW;
+
+// Clock mode variables
+int currentHour = 12;
+int currentMinute = 0;
+unsigned long lastTimeUpdate = 0;
 
 // Heart-Eye animation variables (uses same gazing logic as eyes)
 int8_t heartEyeX = 3, heartEyeY = 4;  // Pupil position in heart
@@ -181,6 +187,101 @@ uint8_t heartEyeBlinkCountdown = 100;
 // Audio visualizer variables
 uint8_t bands[8];
 unsigned long visualizerTimer = 0;
+
+// Clock digit bitmaps (4x8 format for dual-digit display)
+// Each digit is 4 pixels wide by 8 pixels tall
+const uint8_t PROGMEM clockDigits[][8] = {
+  // Digit 0
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B01100000 },// 0110
+  // Digit 1
+  { B01000000,  // 0100
+    B11000000,  // 1100
+    B01000000,  // 0100
+    B01000000,  // 0100
+    B01000000,  // 0100
+    B01000000,  // 0100
+    B01000000,  // 0100
+    B11110000 },// 1111
+  // Digit 2
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B00010000,  // 0001
+    B00100000,  // 0010
+    B01000000,  // 0100
+    B10000000,  // 1000
+    B10000000,  // 1000
+    B11110000 },// 1111
+  // Digit 3
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B00010000,  // 0001
+    B01100000,  // 0110
+    B00010000,  // 0001
+    B00010000,  // 0001
+    B10010000,  // 1001
+    B01100000 },// 0110
+  // Digit 4
+  { B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B11110000,  // 1111
+    B00010000,  // 0001
+    B00010000,  // 0001
+    B00010000,  // 0001
+    B00010000 },// 0001
+  // Digit 5
+  { B11110000,  // 1111
+    B10000000,  // 1000
+    B10000000,  // 1000
+    B11100000,  // 1110
+    B00010000,  // 0001
+    B00010000,  // 0001
+    B10010000,  // 1001
+    B01100000 },// 0110
+  // Digit 6
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B10000000,  // 1000
+    B11100000,  // 1110
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B01100000 },// 0110
+  // Digit 7
+  { B11110000,  // 1111
+    B00010000,  // 0001
+    B00010000,  // 0001
+    B00100000,  // 0010
+    B00100000,  // 0010
+    B01000000,  // 0100
+    B01000000,  // 0100
+    B01000000 },// 0100
+  // Digit 8
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B01100000,  // 0110
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B01100000 },// 0110
+  // Digit 9
+  { B01100000,  // 0110
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B10010000,  // 1001
+    B01110000,  // 0111
+    B00010000,  // 0001
+    B10010000,  // 1001
+    B01100000 } // 0110
+};
 
 
 // Eye animation data
@@ -369,6 +470,7 @@ void heartEyeAnimation();
 void heartEyeGazingAnimation();
 void processAudioData();
 void displayVisualizer();
+void displayClock();
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -1412,6 +1514,7 @@ void processMatrixCommand(String command) {
     matrixHeartMode = true;
     matrixVisualizerMode = false; // Disable other modes
     matrixHeartEyeMode = false;
+    matrixClockMode = false;
     heartAnimationStep = 0;
     heartAnimationTimer = millis();
     heartExpanding = true;
@@ -1451,6 +1554,7 @@ void processMatrixCommand(String command) {
     matrixVisualizerMode = true;
     matrixHeartMode = false; // Disable other modes
     matrixHeartEyeMode = false;
+    matrixClockMode = false;
     Serial.println("Matrix visualizer mode: ON (Demo Mode)");
   }
   else if (command == "MATRIX_VISUALIZER_OFF") {
@@ -1462,11 +1566,43 @@ void processMatrixCommand(String command) {
     matrixHeartEyeMode = true;
     matrixHeartMode = false; // Disable other modes
     matrixVisualizerMode = false;
+    matrixClockMode = false;
     Serial.println("Matrix heart-eye mode: ON");
   }
   else if (command == "MATRIX_HEARTEYE_OFF") {
     matrixHeartEyeMode = false;
     Serial.println("Matrix heart-eye mode: OFF");
+  }
+  // Handle clock mode commands
+  else if (command == "MATRIX_CLOCK_ON") {
+    matrixClockMode = true;
+    matrixHeartMode = false; // Disable other modes
+    matrixVisualizerMode = false;
+    matrixHeartEyeMode = false;
+    lastTimeUpdate = millis();
+    Serial.println("Matrix clock mode: ON");
+  }
+  else if (command == "MATRIX_CLOCK_OFF") {
+    matrixClockMode = false;
+    Serial.println("Matrix clock mode: OFF");
+  }
+  else if (command.startsWith("MATRIX_TIME_")) {
+    // Expected format: MATRIX_TIME_HH_MM (e.g., MATRIX_TIME_12_30)
+    int underscorePos = command.indexOf('_', 12); // Find underscore after "MATRIX_TIME_"
+    if (underscorePos > 0) {
+      int hour = command.substring(12, underscorePos).toInt(); // Extract hour
+      int minute = command.substring(underscorePos + 1).toInt(); // Extract minute
+      
+      // Validate time values
+      hour = constrain(hour, 1, 12); // 12-hour format
+      minute = constrain(minute, 0, 59);
+      
+      currentHour = hour;
+      currentMinute = minute;
+      lastTimeUpdate = millis();
+      
+      Serial.printf("Clock time set to: %02d:%02d\n", currentHour, currentMinute);
+    }
   }
   
   // Send confirmation back to app
@@ -1483,7 +1619,10 @@ void updateMatrixAnimation() {
   matrix.clear();
   matrix2.clear();
   
-  if (matrixVisualizerMode) {
+  if (matrixClockMode) {
+    // Display clock
+    displayClock();
+  } else if (matrixVisualizerMode) {
     // Display visualizer - handled by separate task
     displayVisualizer();
   } else if (matrixHeartEyeMode) {
@@ -1808,5 +1947,70 @@ void heartEyeGazingAnimation() {
     // Not in motion - draw pupil at current static position on both matrices
     matrix.fillRect(heartEyeX, heartEyeY, 2, 2, pupilDrawColor);
     matrix2.fillRect(heartEyeX, heartEyeY, 2, 2, pupilDrawColor);
+  }
+}
+
+// Display clock on dual 8x8 matrices
+void displayClock() {
+  // Update time every minute (60 seconds)
+  unsigned long currentTime = millis();
+  if (currentTime - lastTimeUpdate > 60000) { // 60 seconds
+    currentMinute++;
+    if (currentMinute >= 60) {
+      currentMinute = 0;
+      currentHour++;
+      if (currentHour > 12) {
+        currentHour = 1;
+      }
+    }
+    lastTimeUpdate = currentTime;
+  }
+  
+  // Extract digits for display
+  int hourTens = currentHour / 10;
+  int hourOnes = currentHour % 10;
+  int minuteTens = currentMinute / 10;
+  int minuteOnes = currentMinute % 10;
+  
+  // First matrix (0x70): Display hours (HH)
+  // Left half: hour tens digit (always show, use 0 if needed)
+  for (int y = 0; y < 8; y++) {
+    uint8_t row = pgm_read_byte(&clockDigits[hourTens][y]);
+    for (int x = 0; x < 4; x++) {
+      if (row & (1 << (7 - x))) {
+        matrix.drawPixel(x, y, LED_GREEN);
+      }
+    }
+  }
+  
+  // Right half: hour ones digit
+  for (int y = 0; y < 8; y++) {
+    uint8_t row = pgm_read_byte(&clockDigits[hourOnes][y]);
+    for (int x = 0; x < 4; x++) {
+      if (row & (1 << (7 - x))) {
+        matrix.drawPixel(x + 4, y, LED_GREEN);
+      }
+    }
+  }
+  
+  // Second matrix (0x71): Display minutes (MM)
+  // Left half: minute tens digit
+  for (int y = 0; y < 8; y++) {
+    uint8_t row = pgm_read_byte(&clockDigits[minuteTens][y]);
+    for (int x = 0; x < 4; x++) {
+      if (row & (1 << (7 - x))) {
+        matrix2.drawPixel(x, y, LED_GREEN);
+      }
+    }
+  }
+  
+  // Right half: minute ones digit
+  for (int y = 0; y < 8; y++) {
+    uint8_t row = pgm_read_byte(&clockDigits[minuteOnes][y]);
+    for (int x = 0; x < 4; x++) {
+      if (row & (1 << (7 - x))) {
+        matrix2.drawPixel(x + 4, y, LED_GREEN);
+      }
+    }
   }
 }
