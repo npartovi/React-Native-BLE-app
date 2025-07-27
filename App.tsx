@@ -148,6 +148,7 @@ function App() {
             matrixHeartMode={ledControl.matrixHeartMode}
             matrixVisualizerMode={ledControl.matrixVisualizerMode}
             matrixClockMode={ledControl.matrixClockMode}
+            matrixClockColor={ledControl.matrixClockColor}
             matrixHeartColor1={ledControl.matrixHeartColor1}
             matrixHeartColor2={ledControl.matrixHeartColor2}
             selectedPalette={ledControl.selectedPalette}
@@ -163,6 +164,7 @@ function App() {
             handleMatrixHeartModeToggle={ledControl.handleMatrixHeartModeToggle}
             handleMatrixVisualizerModeToggle={ledControl.handleMatrixVisualizerModeToggle}
             handleMatrixClockModeToggle={ledControl.handleMatrixClockModeToggle}
+            handleMatrixClockColorChange={ledControl.handleMatrixClockColorChange}
             handleMatrixHeartColor1Change={ledControl.handleMatrixHeartColor1Change}
             handleMatrixHeartColor2Change={ledControl.handleMatrixHeartColor2Change}
             handlePaletteSelect={ledControl.handlePaletteSelect}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SectionHeader } from './ui';
 import { theme } from '../styles/theme';
@@ -9,6 +9,7 @@ interface MatrixControlsProps {
   matrixHeartMode: boolean;
   matrixVisualizerMode: boolean;
   matrixClockMode: boolean;
+  matrixClockColor: string;
   matrixHeartColor1: string;
   matrixHeartColor2: string;
   onMatrixEyeColorChange: (color: string) => void;
@@ -16,6 +17,7 @@ interface MatrixControlsProps {
   onMatrixHeartModeToggle: () => void;
   onMatrixVisualizerModeToggle: () => void;
   onMatrixClockModeToggle: () => void;
+  onMatrixClockColorChange: (color: string) => void;
   onMatrixHeartColor1Change: (color: string) => void;
   onMatrixHeartColor2Change: (color: string) => void;
 }
@@ -26,12 +28,13 @@ const MATRIX_COLORS = [
   { id: 'RED', color: theme.colors.error },
 ];
 
+
 const EyeVisualization: React.FC<{
   eyeColor: string;
   pupilColor: string;
 }> = ({ eyeColor, pupilColor }) => {
   const getActualColor = (colorId: string) => {
-    const colorMap = {
+    const colorMap: { [key: string]: string } = {
       'GREEN': theme.colors.success,
       'YELLOW': theme.colors.warning,
       'RED': theme.colors.error,
@@ -114,7 +117,7 @@ const HeartVisualization: React.FC<{
   heartColor2: string;
 }> = ({ heartColor1, heartColor2 }) => {
   const getActualColor = (colorId: string) => {
-    const colorMap = {
+    const colorMap: { [key: string]: string } = {
       'GREEN': theme.colors.success,
       'YELLOW': theme.colors.warning,
       'RED': theme.colors.error,
@@ -234,7 +237,7 @@ const HeartEyeVisualization: React.FC<{
   pupilColor: string;
 }> = ({ heartColor, pupilColor }) => {
   const getActualColor = (colorId: string) => {
-    const colorMap = {
+    const colorMap: { [key: string]: string } = {
       'GREEN': theme.colors.success,
       'YELLOW': theme.colors.warning,
       'RED': theme.colors.error,
@@ -309,81 +312,149 @@ const HeartEyeVisualization: React.FC<{
   );
 };
 
-const ClockVisualization: React.FC = () => {
+const ClockVisualization: React.FC<{
+  clockColor: string;
+}> = ({ clockColor }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Update time every second for live preview
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+  
   // Get current time for visualization
-  const now = new Date();
-  let hour = now.getHours();
-  const minute = now.getMinutes();
+  let hour = currentTime.getHours();
+  const minute = currentTime.getMinutes();
   
   // Convert to 12-hour format
   if (hour === 0) hour = 12;
   else if (hour > 12) hour = hour - 12;
   
-  // Extract digits
+  // Extract digits (always show leading zeros)
   const hourTens = Math.floor(hour / 10);
   const hourOnes = hour % 10;
   const minuteTens = Math.floor(minute / 10);
   const minuteOnes = minute % 10;
   
-  // Simplified 4x4 digit patterns for preview
-  const digitPatterns = {
-    0: [[1,1,1,1],[1,0,0,1],[1,0,0,1],[1,1,1,1]],
-    1: [[0,0,1,0],[0,1,1,0],[0,0,1,0],[0,1,1,1]],
-    2: [[1,1,1,1],[0,0,0,1],[1,1,1,0],[1,1,1,1]],
-    3: [[1,1,1,1],[0,0,1,1],[0,0,0,1],[1,1,1,1]],
-    4: [[1,0,0,1],[1,0,0,1],[1,1,1,1],[0,0,0,1]],
-    5: [[1,1,1,1],[1,0,0,0],[1,1,1,1],[0,0,0,1]],
-    6: [[1,1,1,1],[1,0,0,0],[1,1,1,1],[1,0,0,1]],
-    7: [[1,1,1,1],[0,0,0,1],[0,0,1,0],[0,1,0,0]],
-    8: [[1,1,1,1],[1,1,1,1],[1,0,0,1],[1,1,1,1]],
-    9: [[1,1,1,1],[1,0,0,1],[1,1,1,1],[0,0,0,1]]
+  // Exact 4x8 digit patterns matching Arduino code
+  const digitPatterns: { [key: number]: number[][] } = {
+    0: [
+      [0,1,1,0], [1,0,0,1], [1,0,0,1], [1,0,0,1],
+      [1,0,0,1], [1,0,0,1], [1,0,0,1], [0,1,1,0]
+    ],
+    1: [
+      [0,1,0,0], [1,1,0,0], [0,1,0,0], [0,1,0,0],
+      [0,1,0,0], [0,1,0,0], [0,1,0,0], [1,1,1,1]
+    ],
+    2: [
+      [0,1,1,0], [1,0,0,1], [0,0,0,1], [0,0,1,0],
+      [0,1,0,0], [1,0,0,0], [1,0,0,0], [1,1,1,1]
+    ],
+    3: [
+      [0,1,1,0], [1,0,0,1], [0,0,0,1], [0,1,1,0],
+      [0,0,0,1], [0,0,0,1], [1,0,0,1], [0,1,1,0]
+    ],
+    4: [
+      [1,0,0,1], [1,0,0,1], [1,0,0,1], [1,1,1,1],
+      [0,0,0,1], [0,0,0,1], [0,0,0,1], [0,0,0,1]
+    ],
+    5: [
+      [1,1,1,1], [1,0,0,0], [1,0,0,0], [1,1,1,0],
+      [0,0,0,1], [0,0,0,1], [1,0,0,1], [0,1,1,0]
+    ],
+    6: [
+      [0,1,1,0], [1,0,0,1], [1,0,0,0], [1,1,1,0],
+      [1,0,0,1], [1,0,0,1], [1,0,0,1], [0,1,1,0]
+    ],
+    7: [
+      [1,1,1,1], [0,0,0,1], [0,0,0,1], [0,0,1,0],
+      [0,0,1,0], [0,1,0,0], [0,1,0,0], [0,1,0,0]
+    ],
+    8: [
+      [0,1,1,0], [1,0,0,1], [1,0,0,1], [0,1,1,0],
+      [1,0,0,1], [1,0,0,1], [1,0,0,1], [0,1,1,0]
+    ],
+    9: [
+      [0,1,1,0], [1,0,0,1], [1,0,0,1], [1,0,0,1],
+      [0,1,1,1], [0,0,0,1], [1,0,0,1], [0,1,1,0]
+    ]
   };
   
-  const renderDigit = (digit: number, offsetX: number) => {
-    const pattern = digitPatterns[digit];
+  const renderMatrix = (leftDigit: number, rightDigit: number, label: string) => {
     const pixels = [];
-    const pixelSize = 3;
+    const pixelSize = 4;
     const gap = 1;
     
-    for (let y = 0; y < 4; y++) {
-      for (let x = 0; x < 4; x++) {
-        if (pattern[y][x] === 1) {
-          pixels.push(
-            <View
-              key={`${offsetX}-${x}-${y}`}
-              style={[
-                styles.clockPixel,
-                {
-                  backgroundColor: theme.colors.success,
-                  left: offsetX + x * (pixelSize + gap),
-                  top: y * (pixelSize + gap),
-                  width: pixelSize,
-                  height: pixelSize,
-                }
-              ]}
-            />
-          );
+    // Render 8x8 matrix
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        let isOn = false;
+        
+        if (x < 4) {
+          // Left digit (columns 0-3)
+          isOn = digitPatterns[leftDigit][y][x] === 1;
+        } else {
+          // Right digit (columns 4-7)
+          isOn = digitPatterns[rightDigit][y][x - 4] === 1;
         }
+        
+        // Get the actual colors for display
+        const getDisplayColor = (colorId: string) => {
+          const colorMap: { [key: string]: string } = {
+            'GREEN': theme.colors.success,
+            'YELLOW': theme.colors.warning,
+            'RED': theme.colors.error,
+          };
+          return colorMap[colorId] || theme.colors.success;
+        };
+
+        const onColor = getDisplayColor(clockColor);
+        const offColor = 'transparent';
+
+        pixels.push(
+          <View
+            key={`${x}-${y}`}
+            style={[
+              styles.matrixPixel,
+              {
+                backgroundColor: isOn ? onColor : offColor,
+                left: x * (pixelSize + gap),
+                top: y * (pixelSize + gap),
+                width: pixelSize,
+                height: pixelSize,
+                borderWidth: !isOn ? 1 : 0,
+                borderColor: theme.colors.border,
+              }
+            ]}
+          />
+        );
       }
     }
-    return pixels;
+    
+    return (
+      <View style={styles.clockMatrixContainer}>
+        <View style={styles.pixelMatrix}>
+          {pixels}
+        </View>
+        <Text style={styles.clockLabel}>{label}</Text>
+      </View>
+    );
   };
+  
+  // Format time display
+  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  const ampm = currentTime.getHours() >= 12 ? 'PM' : 'AM';
   
   return (
     <View style={styles.clockContainer}>
-      <View style={styles.clockMatrix}>
-        <Text style={styles.clockLabel}>Hours</Text>
-        <View style={styles.pixelClock}>
-          {hourTens > 0 && renderDigit(hourTens, 0)}
-          {renderDigit(hourOnes, 20)}
-        </View>
-      </View>
-      <View style={styles.clockMatrix}>
-        <Text style={styles.clockLabel}>Minutes</Text>
-        <View style={styles.pixelClock}>
-          {renderDigit(minuteTens, 0)}
-          {renderDigit(minuteOnes, 20)}
-        </View>
+      <Text style={styles.clockTime}>{timeString} {ampm}</Text>
+      <View style={styles.clockMatrices}>
+        {renderMatrix(hourTens, hourOnes, 'HOURS')}
+        {renderMatrix(minuteTens, minuteOnes, 'MINUTES')}
       </View>
     </View>
   );
@@ -395,6 +466,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   matrixHeartMode,
   matrixVisualizerMode,
   matrixClockMode,
+  matrixClockColor,
   matrixHeartColor1,
   matrixHeartColor2,
   onMatrixEyeColorChange,
@@ -402,6 +474,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   onMatrixHeartModeToggle,
   onMatrixVisualizerModeToggle,
   onMatrixClockModeToggle,
+  onMatrixClockColorChange,
   onMatrixHeartColor1Change,
   onMatrixHeartColor2Change,
 }) => {
@@ -491,7 +564,9 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
       <View style={styles.mainContainer}>
         {/* Matrix Visualization */}
         {matrixClockMode ? (
-          <ClockVisualization />
+          <ClockVisualization 
+            clockColor={matrixClockColor}
+          />
         ) : matrixVisualizerMode ? (
           <HeartEyeVisualization
             heartColor={matrixHeartColor1}
@@ -510,9 +585,28 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         )}
 
         {/* Color Selection */}
-        {!matrixClockMode && (
-          <View style={styles.colorControls}>
-            {matrixVisualizerMode ? (
+        <View style={styles.colorControls}>
+          {matrixClockMode ? (
+            <>
+              {/* Clock Color Selection */}
+              <View style={styles.colorRow}>
+                <Text style={styles.colorLabel}>Color</Text>
+                <View style={styles.colorOptions}>
+                  {MATRIX_COLORS.map(color => (
+                    <TouchableOpacity
+                      key={color.id}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: color.color },
+                        matrixClockColor === color.id && styles.selectedSwatch,
+                      ]}
+                      onPress={() => onMatrixClockColorChange(color.id)}
+                    />
+                  ))}
+                </View>
+              </View>
+            </>
+          ) : matrixVisualizerMode ? (
             <>
               {/* Heart-Eye Color Selection */}
               <View style={styles.colorRow}>
@@ -628,7 +722,6 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
             </>
             )}
           </View>
-        )}
       </View>
     </View>
   );
@@ -783,24 +876,36 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.1 }],
   },
   clockContainer: {
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+  },
+  clockTime: {
+    ...theme.typography.caption,
+    color: theme.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: theme.spacing.xs,
+  },
+  clockMatrices: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    flex: 1,
+    gap: theme.spacing.sm,
   },
-  clockMatrix: {
+  clockMatrixContainer: {
     alignItems: 'center',
   },
   clockLabel: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    fontSize: 10,
-    marginBottom: 4,
+    fontSize: 9,
+    marginTop: 4,
+    fontWeight: '500',
   },
-  pixelClock: {
+  pixelMatrix: {
     width: 40,
-    height: 20,
+    height: 40,
     position: 'relative',
     backgroundColor: theme.colors.background,
     borderWidth: 1,
@@ -808,8 +913,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
     ...theme.shadows.sm,
   },
-  clockPixel: {
+  matrixPixel: {
     position: 'absolute',
-    borderRadius: 1,
+    borderRadius: 0.5,
   },
 });

@@ -175,6 +175,7 @@ uint8_t matrixHeartColor2 = LED_YELLOW;
 int currentHour = 12;
 int currentMinute = 0;
 unsigned long lastTimeUpdate = 0;
+uint8_t matrixClockColor = LED_GREEN; // Color for digit pixels
 
 // Heart-Eye animation variables (uses same gazing logic as eyes)
 int8_t heartEyeX = 3, heartEyeY = 4;  // Pupil position in heart
@@ -1604,6 +1605,19 @@ void processMatrixCommand(String command) {
       Serial.printf("Clock time set to: %02d:%02d\n", currentHour, currentMinute);
     }
   }
+  // Handle clock color commands
+  else if (command == "MATRIX_CLOCK_GREEN") {
+    matrixClockColor = LED_GREEN;
+    Serial.println("Matrix clock color: Green");
+  }
+  else if (command == "MATRIX_CLOCK_YELLOW") {
+    matrixClockColor = LED_YELLOW;
+    Serial.println("Matrix clock color: Yellow");
+  }
+  else if (command == "MATRIX_CLOCK_RED") {
+    matrixClockColor = LED_RED;
+    Serial.println("Matrix clock color: Red");
+  }
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -1973,43 +1987,45 @@ void displayClock() {
   int minuteOnes = currentMinute % 10;
   
   // First matrix (0x70): Display hours (HH)
-  // Left half: hour tens digit (always show, use 0 if needed)
   for (int y = 0; y < 8; y++) {
-    uint8_t row = pgm_read_byte(&clockDigits[hourTens][y]);
-    for (int x = 0; x < 4; x++) {
-      if (row & (1 << (7 - x))) {
-        matrix.drawPixel(x, y, LED_GREEN);
+    for (int x = 0; x < 8; x++) {
+      bool pixelOn = false;
+      
+      if (x < 4) {
+        // Left half: hour tens digit
+        uint8_t row = pgm_read_byte(&clockDigits[hourTens][y]);
+        pixelOn = (row & (1 << (7 - x))) != 0;
+      } else {
+        // Right half: hour ones digit
+        uint8_t row = pgm_read_byte(&clockDigits[hourOnes][y]);
+        pixelOn = (row & (1 << (7 - (x - 4)))) != 0;
       }
-    }
-  }
-  
-  // Right half: hour ones digit
-  for (int y = 0; y < 8; y++) {
-    uint8_t row = pgm_read_byte(&clockDigits[hourOnes][y]);
-    for (int x = 0; x < 4; x++) {
-      if (row & (1 << (7 - x))) {
-        matrix.drawPixel(x + 4, y, LED_GREEN);
+      
+      // Only draw pixels that should be on, leave others off
+      if (pixelOn) {
+        matrix.drawPixel(x, y, matrixClockColor);
       }
     }
   }
   
   // Second matrix (0x71): Display minutes (MM)
-  // Left half: minute tens digit
   for (int y = 0; y < 8; y++) {
-    uint8_t row = pgm_read_byte(&clockDigits[minuteTens][y]);
-    for (int x = 0; x < 4; x++) {
-      if (row & (1 << (7 - x))) {
-        matrix2.drawPixel(x, y, LED_GREEN);
+    for (int x = 0; x < 8; x++) {
+      bool pixelOn = false;
+      
+      if (x < 4) {
+        // Left half: minute tens digit
+        uint8_t row = pgm_read_byte(&clockDigits[minuteTens][y]);
+        pixelOn = (row & (1 << (7 - x))) != 0;
+      } else {
+        // Right half: minute ones digit
+        uint8_t row = pgm_read_byte(&clockDigits[minuteOnes][y]);
+        pixelOn = (row & (1 << (7 - (x - 4)))) != 0;
       }
-    }
-  }
-  
-  // Right half: minute ones digit
-  for (int y = 0; y < 8; y++) {
-    uint8_t row = pgm_read_byte(&clockDigits[minuteOnes][y]);
-    for (int x = 0; x < 4; x++) {
-      if (row & (1 << (7 - x))) {
-        matrix2.drawPixel(x + 4, y, LED_GREEN);
+      
+      // Only draw pixels that should be on, leave others off
+      if (pixelOn) {
+        matrix2.drawPixel(x, y, matrixClockColor);
       }
     }
   }
