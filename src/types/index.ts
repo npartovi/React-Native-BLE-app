@@ -19,6 +19,7 @@ export interface ConnectedCloud {
     matrixVisualizerMode: boolean;
     matrixClockMode: boolean;
     matrixClockColor: string;
+    matrixClockColor2: string;
     matrixHeartColor1: string;
     matrixHeartColor2: string;
     selectedPalette: number | null;
@@ -50,6 +51,7 @@ export interface LEDContextType {
   matrixVisualizerMode: boolean;
   matrixClockMode: boolean;
   matrixClockColor: string;
+  matrixClockColor2: string;
   matrixHeartColor1: string;
   matrixHeartColor2: string;
   selectedPalette: number | null;
@@ -66,6 +68,7 @@ export interface LEDContextType {
   handleMatrixVisualizerModeToggle: () => Promise<void>;
   handleMatrixClockModeToggle: () => Promise<void>;
   handleMatrixClockColorChange: (color: string) => Promise<void>;
+  handleMatrixClockColor2Change: (color: string) => Promise<void>;
   handleMatrixHeartColor1Change: (color: string) => Promise<void>;
   handleMatrixHeartColor2Change: (color: string) => Promise<void>;
   handlePaletteSelect: (paletteId: number) => Promise<void>;

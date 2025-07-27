@@ -175,7 +175,8 @@ uint8_t matrixHeartColor2 = LED_YELLOW;
 int currentHour = 12;
 int currentMinute = 0;
 unsigned long lastTimeUpdate = 0;
-uint8_t matrixClockColor = LED_GREEN; // Color for digit pixels
+uint8_t matrixClockColor = LED_GREEN; // Color for first digit (left) on each matrix
+uint8_t matrixClockColor2 = LED_YELLOW; // Color for second digit (right) on each matrix
 
 // Heart-Eye animation variables (uses same gazing logic as eyes)
 int8_t heartEyeX = 3, heartEyeY = 4;  // Pupil position in heart
@@ -1618,6 +1619,19 @@ void processMatrixCommand(String command) {
     matrixClockColor = LED_RED;
     Serial.println("Matrix clock color: Red");
   }
+  // Handle clock color 2 commands (second digit)
+  else if (command == "MATRIX_CLOCK2_GREEN") {
+    matrixClockColor2 = LED_GREEN;
+    Serial.println("Matrix clock color 2: Green");
+  }
+  else if (command == "MATRIX_CLOCK2_YELLOW") {
+    matrixClockColor2 = LED_YELLOW;
+    Serial.println("Matrix clock color 2: Yellow");
+  }
+  else if (command == "MATRIX_CLOCK2_RED") {
+    matrixClockColor2 = LED_RED;
+    Serial.println("Matrix clock color 2: Red");
+  }
   
   // Send confirmation back to app
   if (deviceConnected) {
@@ -2003,7 +2017,9 @@ void displayClock() {
       
       // Only draw pixels that should be on, leave others off
       if (pixelOn) {
-        matrix.drawPixel(x, y, matrixClockColor);
+        // Use different colors for left digit (first) and right digit (second)
+        uint8_t pixelColor = (x < 4) ? matrixClockColor : matrixClockColor2;
+        matrix.drawPixel(x, y, pixelColor);
       }
     }
   }
@@ -2025,7 +2041,9 @@ void displayClock() {
       
       // Only draw pixels that should be on, leave others off
       if (pixelOn) {
-        matrix2.drawPixel(x, y, matrixClockColor);
+        // Use different colors for left digit (first) and right digit (second)
+        uint8_t pixelColor = (x < 4) ? matrixClockColor : matrixClockColor2;
+        matrix2.drawPixel(x, y, pixelColor);
       }
     }
   }

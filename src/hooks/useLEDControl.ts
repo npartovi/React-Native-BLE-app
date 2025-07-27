@@ -19,6 +19,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
   const [matrixVisualizerMode, setMatrixVisualizerMode] = useState(false);
   const [matrixClockMode, setMatrixClockMode] = useState(false);
   const [matrixClockColor, setMatrixClockColor] = useState('GREEN');
+  const [matrixClockColor2, setMatrixClockColor2] = useState('YELLOW');
   const [matrixHeartColor1, setMatrixHeartColor1] = useState('RED');
   const [matrixHeartColor2, setMatrixHeartColor2] = useState('YELLOW');
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
@@ -245,6 +246,15 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     }
   };
 
+  const handleMatrixClockColor2Change = async (color: string) => {
+    setMatrixClockColor2(color);
+
+    if (ledPower) {
+      const command = `MATRIX_CLOCK2_${color}`;
+      await sendBLECommand(command);
+    }
+  };
+
   const handleMatrixHeartColor1Change = async (color: string) => {
     setMatrixHeartColor1(color);
 
@@ -319,6 +329,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     setMatrixVisualizerMode(false);
     setMatrixClockMode(false);
     setMatrixClockColor('GREEN');
+    setMatrixClockColor2('YELLOW');
     setMatrixHeartColor1('RED');
     setMatrixHeartColor2('YELLOW');
   };
@@ -344,6 +355,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     matrixVisualizerMode,
     matrixClockMode,
     matrixClockColor,
+    matrixClockColor2,
     matrixHeartColor1,
     matrixHeartColor2,
     selectedPalette,
@@ -360,6 +372,7 @@ export const useLEDControl = ({ sendBLECommand, connectedDevice, setNotification
     handleMatrixVisualizerModeToggle,
     handleMatrixClockModeToggle,
     handleMatrixClockColorChange,
+    handleMatrixClockColor2Change,
     handleMatrixHeartColor1Change,
     handleMatrixHeartColor2Change,
     handlePaletteSelect,

@@ -10,6 +10,7 @@ interface MatrixControlsProps {
   matrixVisualizerMode: boolean;
   matrixClockMode: boolean;
   matrixClockColor: string;
+  matrixClockColor2: string;
   matrixHeartColor1: string;
   matrixHeartColor2: string;
   onMatrixEyeColorChange: (color: string) => void;
@@ -18,6 +19,7 @@ interface MatrixControlsProps {
   onMatrixVisualizerModeToggle: () => void;
   onMatrixClockModeToggle: () => void;
   onMatrixClockColorChange: (color: string) => void;
+  onMatrixClockColor2Change: (color: string) => void;
   onMatrixHeartColor1Change: (color: string) => void;
   onMatrixHeartColor2Change: (color: string) => void;
 }
@@ -314,7 +316,8 @@ const HeartEyeVisualization: React.FC<{
 
 const ClockVisualization: React.FC<{
   clockColor: string;
-}> = ({ clockColor }) => {
+  clockColor2: string;
+}> = ({ clockColor, clockColor2 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   // Update time every second for live preview
@@ -412,7 +415,9 @@ const ClockVisualization: React.FC<{
           return colorMap[colorId] || theme.colors.success;
         };
 
-        const onColor = getDisplayColor(clockColor);
+        // Use different colors for left digit (first) and right digit (second)
+        const leftDigitColor = getDisplayColor(clockColor);
+        const rightDigitColor = getDisplayColor(clockColor2);
         const offColor = 'transparent';
 
         pixels.push(
@@ -421,7 +426,7 @@ const ClockVisualization: React.FC<{
             style={[
               styles.matrixPixel,
               {
-                backgroundColor: isOn ? onColor : offColor,
+                backgroundColor: isOn ? (x < 4 ? leftDigitColor : rightDigitColor) : offColor,
                 left: x * (pixelSize + gap),
                 top: y * (pixelSize + gap),
                 width: pixelSize,
@@ -467,6 +472,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   matrixVisualizerMode,
   matrixClockMode,
   matrixClockColor,
+  matrixClockColor2,
   matrixHeartColor1,
   matrixHeartColor2,
   onMatrixEyeColorChange,
@@ -475,6 +481,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
   onMatrixVisualizerModeToggle,
   onMatrixClockModeToggle,
   onMatrixClockColorChange,
+  onMatrixClockColor2Change,
   onMatrixHeartColor1Change,
   onMatrixHeartColor2Change,
 }) => {
@@ -566,6 +573,7 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         {matrixClockMode ? (
           <ClockVisualization 
             clockColor={matrixClockColor}
+            clockColor2={matrixClockColor2}
           />
         ) : matrixVisualizerMode ? (
           <HeartEyeVisualization
@@ -588,9 +596,9 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
         <View style={styles.colorControls}>
           {matrixClockMode ? (
             <>
-              {/* Clock Color Selection */}
+              {/* Clock Color 1 Selection (First Digit) */}
               <View style={styles.colorRow}>
-                <Text style={styles.colorLabel}>Color</Text>
+                <Text style={styles.colorLabel}>1st</Text>
                 <View style={styles.colorOptions}>
                   {MATRIX_COLORS.map(color => (
                     <TouchableOpacity
@@ -601,6 +609,24 @@ export const MatrixControls: React.FC<MatrixControlsProps> = ({
                         matrixClockColor === color.id && styles.selectedSwatch,
                       ]}
                       onPress={() => onMatrixClockColorChange(color.id)}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Clock Color 2 Selection (Second Digit) */}
+              <View style={styles.colorRow}>
+                <Text style={styles.colorLabel}>2nd</Text>
+                <View style={styles.colorOptions}>
+                  {MATRIX_COLORS.map(color => (
+                    <TouchableOpacity
+                      key={color.id}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: color.color },
+                        matrixClockColor2 === color.id && styles.selectedSwatch,
+                      ]}
+                      onPress={() => onMatrixClockColor2Change(color.id)}
                     />
                   ))}
                 </View>
