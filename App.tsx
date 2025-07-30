@@ -105,18 +105,6 @@ function App() {
             {/* Header */}
             <Header />
 
-            {/* Combined Bluetooth & Connection Status */}
-            <BluetoothStatusCard
-              bluetoothState={bluetoothState}
-              connectedDevice={connectedDevice}
-              onDisconnect={() => {
-                // For backward compatibility - disconnect active cloud
-                if (activeCloudId) {
-                  handleDisconnectCloud(activeCloudId);
-                }
-              }}
-            />
-
             {/* Cloud Manager - Show connected clouds */}
             <CloudManager
               connectedClouds={connectedClouds}

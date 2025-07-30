@@ -55,80 +55,24 @@ export const LEDControls: React.FC<LEDControlsProps> = ({
   onDisconnect,
   onGoHome,
 }) => {
-  const getBluetoothIcon = () => {
-    switch (bluetoothState) {
-      case 'PoweredOn':
-        return '📶';
-      case 'PoweredOff':
-        return '📵';
-      default:
-        return '❓';
-    }
-  };
-
-  const getBluetoothStatusColor = () => {
-    switch (bluetoothState) {
-      case 'PoweredOn':
-        return '#00ff00';
-      case 'PoweredOff':
-        return '#ff0000';
-      default:
-        return '#ffc300';
-    }
-  };
-
-  const getConnectionStatusColor = () => {
-    return connectedDevice ? '#00ff00' : '#ff0000';
-  };
   return (
     <View style={styles.container}>
-      {/* Device Status Section */}
-      <View style={styles.deviceStatusRow}>
-        {/* Bluetooth Status */}
-        <View style={styles.statusItem}>
-          <Text style={styles.statusIcon}>{getBluetoothIcon()}</Text>
-          <View
-            style={[
-              styles.statusIndicator,
-              { backgroundColor: getBluetoothStatusColor() },
-            ]}
-          />
-          <Text style={styles.statusLabel}>BT</Text>
-        </View>
-
-        {/* Connection Status */}
-        <View style={styles.statusItem}>
-          <Text style={styles.statusIcon}>🔗</Text>
-          <View
-            style={[
-              styles.statusIndicator,
-              { backgroundColor: getConnectionStatusColor() },
-            ]}
-          />
-          <Text style={styles.statusLabel}>
-            {connectedDevice ? 'Electric Dream' : 'Off'}
-          </Text>
-        </View>
-
-        {/* Action Buttons */}
-        {connectedDevice && (
-          <View style={styles.actionButtons}>
-            {onGoHome && (
-              <TouchableOpacity
-                style={styles.homeButton}
-                onPress={onGoHome}
-              >
-                <Text style={styles.homeText}>🏠 Home</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.disconnectButton}
-              onPress={onDisconnect}
-            >
-              <Text style={styles.disconnectText}>Disconnect</Text>
-            </TouchableOpacity>
-          </View>
+      {/* Action Buttons */}
+      <View style={styles.actionButtonsRow}>
+        {onGoHome && (
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={onGoHome}
+          >
+            <Text style={styles.homeText}>🏠 Home</Text>
+          </TouchableOpacity>
         )}
+        <TouchableOpacity
+          style={styles.disconnectButton}
+          onPress={onDisconnect}
+        >
+          <Text style={styles.disconnectText}>Disconnect</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.powerBrightnessRow}>
@@ -266,68 +210,40 @@ const styles = StyleSheet.create({
     ...theme.typography.bodyBold,
     color: theme.colors.textPrimary,
   },
-  deviceStatusRow: {
+  actionButtonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.md,
-  },
-  statusItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 15,
-    flex: 0.3,
-    justifyContent: 'center',
-  },
-  statusIcon: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  statusIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 4,
-  },
-  statusLabel: {
-    fontSize: 11,
-    color: theme.colors.textPrimary,
-    fontWeight: '500',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    flex: 0.5,
+    gap: theme.spacing.sm,
   },
   homeButton: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 15,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
     flex: 1,
     alignItems: 'center',
+    ...theme.shadows.sm,
   },
   homeText: {
     color: theme.colors.textInverse,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
   disconnectButton: {
     backgroundColor: '#ff4757',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 15,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
     flex: 1,
     alignItems: 'center',
+    ...theme.shadows.sm,
   },
   disconnectText: {
     color: theme.colors.textInverse,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  useColorScheme,
+} from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
 interface DeviceScannerProps {
@@ -19,9 +25,6 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        Electric Dream Devices
-      </Text>
       <TouchableOpacity
         style={[
           styles.scanButton,
@@ -46,9 +49,7 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
               <Text style={styles.deviceName}>
                 {device.name || 'Unknown Electric Dream Device'}
               </Text>
-              <Text style={styles.deviceId}>
-                {device.id}
-              </Text>
+              <Text style={styles.deviceId}>{device.id}</Text>
             </TouchableOpacity>
           ))}
         </View>

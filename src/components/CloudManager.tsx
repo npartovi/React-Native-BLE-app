@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { ConnectedCloud } from '../types';
 import { SectionHeader } from './ui';
 import { theme } from '../styles/theme';
@@ -22,15 +28,15 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
   if (connectedClouds.length === 0) {
     return (
       <View style={styles.container}>
-        <SectionHeader 
-          title="Electric Dream Clouds" 
+        <SectionHeader
+          title="Connected Devices"
           icon="☁️"
           color={theme.colors.primary}
         />
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No clouds connected</Text>
+          <Text style={styles.emptyStateText}>No devices connected</Text>
           <Text style={styles.emptyStateSubtext}>
-            Scan for Electric Dream devices to connect your first cloud
+            Scan for Electric Dream devices to connect your device
           </Text>
         </View>
       </View>
@@ -39,14 +45,17 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
 
   return (
     <View style={styles.container}>
-      <SectionHeader 
-        title="Electric Dream Clouds" 
+      <SectionHeader
+        title="Connected Devices"
         icon="☁️"
         color={theme.colors.primary}
       />
-      
-      <ScrollView style={styles.cloudsList} showsVerticalScrollIndicator={false}>
-        {connectedClouds.map((cloud) => (
+
+      <ScrollView
+        style={styles.cloudsList}
+        showsVerticalScrollIndicator={false}
+      >
+        {connectedClouds.map(cloud => (
           <View key={cloud.id} style={styles.cloudCard}>
             <View style={styles.cloudHeader}>
               <View style={styles.cloudInfo}>
@@ -55,12 +64,19 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
                   {cloud.id === activeCloudId ? 'Active' : 'Connected'}
                 </Text>
               </View>
-              <View style={[
-                styles.statusIndicator,
-                { backgroundColor: cloud.id === activeCloudId ? theme.colors.success : theme.colors.warning }
-              ]} />
+              <View
+                style={[
+                  styles.statusIndicator,
+                  {
+                    backgroundColor:
+                      cloud.id === activeCloudId
+                        ? theme.colors.success
+                        : theme.colors.warning,
+                  },
+                ]}
+              />
             </View>
-            
+
             <View style={styles.cloudActions}>
               {cloud.id !== activeCloudId && (
                 <TouchableOpacity
@@ -70,7 +86,7 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
                   <Text style={styles.switchButtonText}>Switch To</Text>
                 </TouchableOpacity>
               )}
-              
+
               <TouchableOpacity
                 style={[styles.actionButton, styles.controlButton]}
                 onPress={() => onControlCloud(cloud.id)}
@@ -79,7 +95,7 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
                   {cloud.id === activeCloudId ? 'Control' : 'View'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.actionButton, styles.disconnectButton]}
                 onPress={() => onDisconnectCloud(cloud.id)}
