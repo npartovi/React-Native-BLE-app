@@ -118,6 +118,7 @@ function App() {
             <DeviceScanner
               isScanning={isScanning}
               discoveredDevices={discoveredDevices}
+              connectedClouds={connectedClouds}
               onScan={scanForDevices}
               onConnect={connectToDevice}
             />

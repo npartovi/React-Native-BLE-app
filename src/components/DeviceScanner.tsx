@@ -7,10 +7,12 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Device } from 'react-native-ble-plx';
+import { ConnectedCloud } from '../types';
 
 interface DeviceScannerProps {
   isScanning: boolean;
   discoveredDevices: Device[];
+  connectedClouds: ConnectedCloud[];
   onScan: () => void;
   onConnect: (device: Device) => void;
 }
@@ -18,10 +20,16 @@ interface DeviceScannerProps {
 export const DeviceScanner: React.FC<DeviceScannerProps> = ({
   isScanning,
   discoveredDevices,
+  connectedClouds,
   onScan,
   onConnect,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
+
+  // Filter out already connected devices
+  const availableDevices = discoveredDevices.filter(
+    device => !connectedClouds.some(cloud => cloud.id === device.id)
+  );
 
   return (
     <View style={styles.section}>
@@ -38,9 +46,9 @@ export const DeviceScanner: React.FC<DeviceScannerProps> = ({
         </Text>
       </TouchableOpacity>
 
-      {discoveredDevices.length > 0 && (
+      {availableDevices.length > 0 && (
         <View style={styles.devicesContainer}>
-          {discoveredDevices.map(device => (
+          {availableDevices.map(device => (
             <TouchableOpacity
               key={device.id}
               style={styles.deviceItem}

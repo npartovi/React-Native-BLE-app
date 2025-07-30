@@ -60,40 +60,37 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
             <View style={styles.cloudHeader}>
               <View style={styles.cloudInfo}>
                 <Text style={styles.cloudName}>{cloud.name}</Text>
-                <Text style={styles.cloudStatus}>
-                  {cloud.id === activeCloudId ? 'Active' : 'Connected'}
-                </Text>
+                <View style={styles.statusRow}>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      {
+                        backgroundColor:
+                          cloud.id === activeCloudId
+                            ? theme.colors.success
+                            : theme.colors.textSecondary,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.cloudStatus}>
+                    {cloud.id === activeCloudId ? 'Active' : 'Connected'}
+                  </Text>
+                </View>
               </View>
-              <View
-                style={[
-                  styles.statusIndicator,
-                  {
-                    backgroundColor:
-                      cloud.id === activeCloudId
-                        ? theme.colors.success
-                        : theme.colors.warning,
-                  },
-                ]}
-              />
             </View>
 
             <View style={styles.cloudActions}>
-              {cloud.id !== activeCloudId && (
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.switchButton]}
-                  onPress={() => onSwitchToCloud(cloud.id)}
-                >
-                  <Text style={styles.switchButtonText}>Switch To</Text>
-                </TouchableOpacity>
-              )}
-
               <TouchableOpacity
                 style={[styles.actionButton, styles.controlButton]}
-                onPress={() => onControlCloud(cloud.id)}
+                onPress={() => {
+                  // Automatically switch to the device when controlling it
+                  if (cloud.id !== activeCloudId) {
+                    onSwitchToCloud(cloud.id);
+                  }
+                  onControlCloud(cloud.id);
+                }}
               >
-                <Text style={styles.controlButtonText}>
-                  {cloud.id === activeCloudId ? 'Control' : 'View'}
-                </Text>
+                <Text style={styles.controlButtonText}>Control</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -161,10 +158,16 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
   },
-  statusIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   cloudActions: {
     flexDirection: 'row',
@@ -176,14 +179,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     borderRadius: theme.borderRadius.sm,
     alignItems: 'center',
-  },
-  switchButton: {
-    backgroundColor: theme.colors.primary,
-  },
-  switchButtonText: {
-    ...theme.typography.caption,
-    color: theme.colors.textInverse,
-    fontWeight: '600',
   },
   controlButton: {
     backgroundColor: theme.colors.success,
