@@ -4,114 +4,52 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  useColorScheme,
 } from 'react-native';
-import { Device } from 'react-native-ble-plx';
-import { ConnectedCloud } from '../types';
+import { theme } from '../styles/theme';
 
 interface DeviceScannerProps {
-  isScanning: boolean;
-  discoveredDevices: Device[];
-  connectedClouds: ConnectedCloud[];
-  onScan: () => void;
-  onConnect: (device: Device) => void;
+  onOpenScanModal: () => void;
 }
 
 export const DeviceScanner: React.FC<DeviceScannerProps> = ({
-  isScanning,
-  discoveredDevices,
-  connectedClouds,
-  onScan,
-  onConnect,
+  onOpenScanModal,
 }) => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  // Filter out already connected devices
-  const availableDevices = discoveredDevices.filter(
-    device => !connectedClouds.some(cloud => cloud.id === device.id)
-  );
-
   return (
-    <View style={styles.section}>
+    <View style={styles.container}>
       <TouchableOpacity
-        style={[
-          styles.scanButton,
-          { backgroundColor: isScanning ? '#ffc300' : '#ffd60a' },
-        ]}
-        onPress={onScan}
-        disabled={isScanning}
+        style={styles.scanButton}
+        onPress={onOpenScanModal}
       >
-        <Text style={styles.buttonText}>
-          {isScanning ? 'Scanning...' : 'Scan for Electric Dream Devices'}
-        </Text>
+        <Text style={styles.scanIcon}>📡</Text>
+        <Text style={styles.buttonText}>Scan for Electric Dream Devices</Text>
       </TouchableOpacity>
-
-      {availableDevices.length > 0 && (
-        <View style={styles.devicesContainer}>
-          {availableDevices.map(device => (
-            <TouchableOpacity
-              key={device.id}
-              style={styles.deviceItem}
-              onPress={() => onConnect(device)}
-            >
-              <Text style={styles.deviceName}>
-                {device.name || 'Unknown Electric Dream Device'}
-              </Text>
-              <Text style={styles.deviceId}>{device.id}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 25,
-    padding: 15,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ffc300',
-    backgroundColor: '#003566',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#ffd60a',
+  container: {
+    marginBottom: theme.spacing.lg,
+    marginHorizontal: theme.spacing.sm,
   },
   scanButton: {
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.md,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    ...theme.shadows.md,
+  },
+  scanIcon: {
+    fontSize: 24,
   },
   buttonText: {
-    color: '#FFFFFF',
+    ...theme.typography.button,
+    color: theme.colors.textInverse,
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  devicesContainer: {
-    marginTop: 10,
-  },
-  deviceItem: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ffc300',
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: '#001d3d',
-  },
-  deviceName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffd60a',
-  },
-  deviceId: {
-    fontSize: 12,
-    marginTop: 2,
-    color: '#ffffff',
-    opacity: 0.8,
+    fontWeight: '600',
   },
 });

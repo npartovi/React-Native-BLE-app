@@ -12,6 +12,7 @@ export { PaletteControls } from './PaletteControls';
 export { LaunchScreen } from './LaunchScreen';
 export { CloudPreview } from './CloudPreview';
 export { CloudManager } from './CloudManager';
+export { ScanModal } from './ScanModal';
 
 // UI Components
 export * from './ui';

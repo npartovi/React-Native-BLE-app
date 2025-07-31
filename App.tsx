@@ -17,6 +17,7 @@ import {
   LEDControls,
   LaunchScreen,
   CloudManager,
+  ScanModal,
 } from './src/components';
 import { useBluetooth } from './src/hooks/useBluetooth';
 import { useLEDControl } from './src/hooks/useLEDControl';
@@ -27,6 +28,7 @@ function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
+  const [showScanModal, setShowScanModal] = useState(false);
 
   const {
     bluetoothState,
@@ -114,13 +116,9 @@ function App() {
               onControlCloud={handleGoToControls}
             />
             
-            {/* Device Scanner */}
+            {/* Device Scanner Button */}
             <DeviceScanner
-              isScanning={isScanning}
-              discoveredDevices={discoveredDevices}
-              connectedClouds={connectedClouds}
-              onScan={scanForDevices}
-              onConnect={connectToDevice}
+              onOpenScanModal={() => setShowScanModal(true)}
             />
           </>
         ) : (
@@ -173,6 +171,17 @@ function App() {
           )
         )}
       </ScrollView>
+
+      {/* Scan Modal */}
+      <ScanModal
+        visible={showScanModal}
+        isScanning={isScanning}
+        discoveredDevices={discoveredDevices}
+        connectedClouds={connectedClouds}
+        onClose={() => setShowScanModal(false)}
+        onConnect={connectToDevice}
+        onStartScan={scanForDevices}
+      />
     </SafeAreaView>
   );
 }
