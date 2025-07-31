@@ -41,6 +41,7 @@ function App() {
     connectToDevice,
     disconnectDevice,
     switchToCloud,
+    renameCloud,
     sendBLECommand,
     setNotificationCallback,
     getBluetoothStatusColor,
@@ -114,6 +115,7 @@ function App() {
               onSwitchToCloud={switchToCloud}
               onDisconnectCloud={handleDisconnectCloud}
               onControlCloud={handleGoToControls}
+              onRenameCloud={renameCloud}
             />
             
             {/* Device Scanner Button */}

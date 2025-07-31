@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert, Platform, PermissionsAndroid } from 'react-native';
 import { BleManager, Device, State } from 'react-native-ble-plx';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SERVICE_UUID, CHARACTERISTIC_UUID } from '../constants';
 import { ConnectedCloud } from '../types';
 
@@ -15,6 +16,33 @@ export const useBluetooth = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<Device[]>([]);
   const stateUpdateCallbackRef = useRef<((message: string) => void) | null>(null);
+
+  // AsyncStorage keys
+  const DEVICE_NAMES_KEY = 'electric_dream_device_names';
+
+  // AsyncStorage functions for device names
+  const saveDeviceNames = async (deviceNames: Record<string, string>) => {
+    try {
+      await AsyncStorage.setItem(DEVICE_NAMES_KEY, JSON.stringify(deviceNames));
+    } catch (error) {
+      console.log('Error saving device names:', error);
+    }
+  };
+
+  const loadDeviceNames = async (): Promise<Record<string, string>> => {
+    try {
+      const saved = await AsyncStorage.getItem(DEVICE_NAMES_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.log('Error loading device names:', error);
+      return {};
+    }
+  };
+
+  const getSavedDeviceName = async (deviceId: string, fallbackName: string): Promise<string> => {
+    const savedNames = await loadDeviceNames();
+    return savedNames[deviceId] || fallbackName;
+  };
 
   // Helper to get default LED state for new clouds
   const getDefaultLEDState = () => ({
@@ -216,8 +244,9 @@ export const useBluetooth = () => {
       const connectedDevice = await device.connect();
       await connectedDevice.discoverAllServicesAndCharacteristics();
 
-      // Create new cloud entry
-      const cloudName = device.name || device.localName || `Cloud ${connectedClouds.length + 1}`;
+      // Create new cloud entry with saved name if available
+      const defaultName = device.name || device.localName || `Cloud ${connectedClouds.length + 1}`;
+      const cloudName = await getSavedDeviceName(device.id, defaultName);
       const newCloud: ConnectedCloud = {
         id: device.id,
         name: cloudName,
@@ -358,6 +387,27 @@ export const useBluetooth = () => {
     return '#4CAF50'; // Green for connected
   };
 
+  const renameCloud = async (cloudId: string, newName: string) => {
+    // Update local state
+    setConnectedClouds(prev => 
+      prev.map(cloud => 
+        cloud.id === cloudId 
+          ? { ...cloud, name: newName }
+          : cloud
+      )
+    );
+
+    // Save to persistent storage
+    try {
+      const savedNames = await loadDeviceNames();
+      savedNames[cloudId] = newName;
+      await saveDeviceNames(savedNames);
+      console.log(`Saved device name: ${cloudId} -> ${newName}`);
+    } catch (error) {
+      console.log('Error saving device name:', error);
+    }
+  };
+
   return {
     bluetoothState,
     connectedClouds,
@@ -369,6 +419,7 @@ export const useBluetooth = () => {
     connectToDevice,
     disconnectDevice,
     switchToCloud,
+    renameCloud,
     sendBLECommand,
     setNotificationCallback,
     getBluetoothStatusColor,

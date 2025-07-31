@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ConnectedCloud } from '../types';
 import { SectionHeader } from './ui';
+import { EditNameModal } from './EditNameModal';
 import { theme } from '../styles/theme';
 
 interface CloudManagerProps {
@@ -16,6 +17,7 @@ interface CloudManagerProps {
   onSwitchToCloud: (cloudId: string) => void;
   onDisconnectCloud: (cloudId: string) => void;
   onControlCloud: (cloudId: string) => void;
+  onRenameCloud: (cloudId: string, newName: string) => Promise<void>;
 }
 
 export const CloudManager: React.FC<CloudManagerProps> = ({
@@ -24,7 +26,9 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
   onSwitchToCloud,
   onDisconnectCloud,
   onControlCloud,
+  onRenameCloud,
 }) => {
+  const [editingCloud, setEditingCloud] = useState<{ id: string; name: string } | null>(null);
   if (connectedClouds.length === 0) {
     return (
       <View style={styles.container}>
@@ -59,7 +63,15 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
           <View key={cloud.id} style={styles.cloudCard}>
             <View style={styles.cloudHeader}>
               <View style={styles.cloudInfo}>
-                <Text style={styles.cloudName}>{cloud.name}</Text>
+                <View style={styles.nameRow}>
+                  <Text style={styles.cloudName}>{cloud.name}</Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => setEditingCloud({ id: cloud.id, name: cloud.name })}
+                  >
+                    <Text style={styles.editIcon}>✏️</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.statusRow}>
                   <View
                     style={[
@@ -103,6 +115,19 @@ export const CloudManager: React.FC<CloudManagerProps> = ({
           </View>
         ))}
       </ScrollView>
+
+      {/* Edit Name Modal */}
+      {editingCloud && (
+        <EditNameModal
+          visible={!!editingCloud}
+          currentName={editingCloud.name}
+          onClose={() => setEditingCloud(null)}
+          onSave={async (newName) => {
+            await onRenameCloud(editingCloud.id, newName);
+            setEditingCloud(null);
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -149,10 +174,21 @@ const styles = StyleSheet.create({
   cloudInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
   cloudName: {
     ...theme.typography.subtitle,
     color: theme.colors.textPrimary,
     fontWeight: '600',
+  },
+  editButton: {
+    padding: 4,
+  },
+  editIcon: {
+    fontSize: 16,
   },
   cloudStatus: {
     ...theme.typography.caption,

@@ -13,6 +13,7 @@ export { LaunchScreen } from './LaunchScreen';
 export { CloudPreview } from './CloudPreview';
 export { CloudManager } from './CloudManager';
 export { ScanModal } from './ScanModal';
+export { EditNameModal } from './EditNameModal';
 
 // UI Components
 export * from './ui';
